@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+.git/
+.env
+chroma_db/
+frontend/
+*.pdf
+.gitignore
+README.md
+docker-compose.yml
