@@ -101,6 +101,15 @@ export default function Home() {
     loadIngestStatus();
   }, [loadDocuments, loadIngestStatus]);
 
+  // Poll ingestion status while ingesting
+  useEffect(() => {
+    if (!ingesting) return;
+    const interval = setInterval(async () => {
+      await loadIngestStatus();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [ingesting, loadIngestStatus]);
+
   const runIngestion = async () => {
     setIngesting(true);
     setError(null);
@@ -110,9 +119,15 @@ export default function Home() {
       const params = new URLSearchParams();
       params.set("clear_existing", String(clearExisting));
       params.set("use_vision", String(useVision));
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 300000); // 5 min timeout
+
       const res = await fetch(`${API_URL}/api/ingest?${params}`, {
         method: "POST",
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
 
       if (!res.ok) {
         const err = await res.json();
@@ -123,7 +138,18 @@ export default function Home() {
       setIngestResult(data);
       await loadIngestStatus();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Ingestion failed");
+      // Ingestion may still succeed on the backend even if the fetch timed out
+      // Refresh status after a short delay to check
+      setTimeout(async () => {
+        await loadIngestStatus();
+        await loadDocuments();
+      }, 3000);
+      const msg = err instanceof Error ? err.message : "Ingestion failed";
+      if (msg.includes("aborted") || msg.includes("Failed to fetch")) {
+        setError("Request timed out, but ingestion may still be running. Status will refresh automatically.");
+      } else {
+        setError(msg);
+      }
     } finally {
       setIngesting(false);
     }
