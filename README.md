@@ -2,7 +2,7 @@
 
 An AI-powered tool that lets you **ask questions about Khazanah's Annual Review in plain English** and get accurate answers with source citations. Think of it as a smart assistant that has read the entire annual report and can instantly find the information you need.
 
-> **Video Walkthrough:** [Watch the 3–5 min demo on Loom](https://www.loom.com/share/PLACEHOLDER)
+> **Video Walkthrough:** [Watch the 3–5 min demo on Loom](https://www.loom.com/share/b362dc701ceb4e2bb32063a7748c78c1)
 >
 > **Live Demo:** [knb-ai.fadhs.com](https://knb-ai.fadhs.com)
 
