@@ -151,19 +151,37 @@ class AgentSupervisor:
         # Summarize the extracted data using LLM
         import json
         data_str = json.dumps(data, indent=2, default=str)
+
+        # Build source reference list for citation
+        sources = ext_result.get("sources", [])
+        unique_sources = []
+        seen = set()
+        for s in sources:
+            key = (s.get("source", ""), s.get("page", 0))
+            if key not in seen:
+                seen.add(key)
+                unique_sources.append(s)
+        source_refs = "\n".join(
+            f"[{i+1}] {s.get('source', 'Unknown')} p.{s.get('page', 0)}"
+            for i, s in enumerate(unique_sources[:6])
+        )
+
         prompt = (
             f"The user asked: \"{query}\"\n\n"
             f"Here is the structured data extracted from Khazanah's Annual Review:\n"
             f"```json\n{data_str}\n```\n\n"
+            f"Sources:\n{source_refs}\n\n"
             f"Present this data clearly to the user in a readable format. "
             f"Use bullet points for lists and tables where appropriate. "
-            f"Reference specific values from the data. Be concise."
+            f"Reference specific values from the data. Be concise. "
+            f"Cite sources using numbered references like [1], [2], etc. matching the Source numbers above. "
+            f"Place citations at the end of the relevant sentence or data point."
         )
 
         try:
             answer = await self.llm_client.generate(
                 prompt=prompt,
-                system_prompt="You are a helpful financial data assistant. Present extracted data clearly and accurately.",
+                system_prompt="You are a helpful financial data assistant. Present extracted data clearly and accurately. Always cite sources using [1], [2] etc.",
                 temperature=0.1,
                 model_override=model,
             )
@@ -171,7 +189,6 @@ class AgentSupervisor:
             logger.error(f"Failed to format extraction: {e}")
             answer = f"Extracted data:\n```json\n{data_str}\n```"
 
-        sources = ext_result.get("sources", [])
         return {
             "answer": answer,
             "sources": [
@@ -183,7 +200,7 @@ class AgentSupervisor:
                     "relevance_score": 0.0,
                     "text_snippet": "",
                 }
-                for s in sources[:6]
+                for s in unique_sources[:6]
             ],
             "confidence": "high",
             "confidence_label": "Structured extraction from Annual Review",

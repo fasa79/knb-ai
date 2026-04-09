@@ -403,8 +403,7 @@ export default function ChatPage() {
                       {msg.sources.map((src, j) => {
                         const shortName = src.source
                           .replace(/\.pdf$/i, "")
-                          .replace(/^KAR-\d{4}_/, "")
-                          .replace(/-ENG$/, "")
+                          .replace(/_/g, " ")
                           .replace(/-/g, " ");
                         const isExpanded = expandedSource === i * 100 + j;
                         return (
