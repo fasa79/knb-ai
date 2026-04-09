@@ -6,6 +6,7 @@ Handles any PDF dynamically — not hardcoded to a specific document structure.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from dataclasses import dataclass
@@ -72,11 +73,13 @@ class IngestionPipeline:
         chunk_size: int | None = None,
         chunk_overlap: int | None = None,
         extract_images: bool = True,
+        use_vision: bool = False,
     ):
         settings = get_settings()
         self.chunk_size = chunk_size or settings.chunk_size
         self.chunk_overlap = chunk_overlap or settings.chunk_overlap
         self.data_dir = settings.data_path
+        self.use_vision = use_vision
 
         self.parser = PDFParser(extract_images=extract_images)
         self.embedding_service = get_embedding_service()
@@ -164,6 +167,14 @@ class IngestionPipeline:
             chunks = self.chunker.chunk_document(document)
             logger.info(f"  Created {len(chunks)} chunks")
 
+            # Step 2b: Vision — describe chart/graph images and add as chunks
+            if self.use_vision and total_images > 0:
+                logger.info(f"  [2b] Analyzing {total_images} images with vision model...")
+                vision_chunks = self._process_images_with_vision(document)
+                if vision_chunks:
+                    chunks.extend(vision_chunks)
+                    logger.info(f"  Added {len(vision_chunks)} image description chunks (total: {len(chunks)})")
+
             if not chunks:
                 logger.warning(f"  No chunks produced for {pdf_path.name}")
                 return IngestionResult(
@@ -221,12 +232,83 @@ class IngestionPipeline:
             )
 
     def get_status(self) -> dict:
-        """Return current vector store status."""
+        """Return current vector store status with per-file chunk counts."""
         count = self.vector_store.count()
+        pdf_files = [f.name for f in sorted(self.data_dir.glob("*.pdf"))]
+        chunks_by_source = self.vector_store.count_by_source()
+
+        file_status = []
+        for filename in pdf_files:
+            chunks = chunks_by_source.get(filename, 0)
+            file_status.append({
+                "filename": filename,
+                "chunks": chunks,
+                "ingested": chunks > 0,
+            })
+
         return {
             "chunks_stored": count,
             "data_dir": str(self.data_dir),
-            "pdf_files": [f.name for f in sorted(self.data_dir.glob("*.pdf"))],
+            "pdf_files": pdf_files,
             "chunk_size": self.chunk_size,
             "chunk_overlap": self.chunk_overlap,
+            "file_status": file_status,
         }
+
+    def _process_images_with_vision(
+        self,
+        document: ParsedDocument,
+        min_size_kb: int = 30,
+        max_size_kb: int = 1000,
+    ) -> list[Chunk]:
+        """Use vision model to describe images and create searchable chunks.
+
+        Filters images by size to skip tiny icons/logos (< min_size_kb)
+        and full-page backgrounds (> max_size_kb).
+        """
+        from app.core.vision_parser import describe_images_batch
+
+        # Collect significant images — skip tiny icons and huge backgrounds
+        images = []
+        skipped = 0
+        for page in document.pages:
+            for img_bytes in page.images:
+                size_kb = len(img_bytes) // 1024
+                if min_size_kb <= size_kb <= max_size_kb:
+                    images.append((img_bytes, page.page_number, document.filename))
+                else:
+                    skipped += 1
+
+        if skipped:
+            logger.info(f"  Filtered {skipped} images by size, {len(images)} candidates remain")
+
+        if not images:
+            return []
+
+        # Run vision analysis (async → sync bridge via thread to avoid loop conflicts)
+        import concurrent.futures
+        def _run_vision():
+            return asyncio.run(describe_images_batch(images))
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            descriptions = pool.submit(_run_vision).result()
+
+        # Convert descriptions to Chunk objects
+        chunks = []
+        for i, desc in enumerate(descriptions):
+            chunk_id = f"{document.filename}_img_p{desc['page']}_{i}"
+            text = f"[Image/Chart from page {desc['page']}]\n{desc['description']}"
+            chunks.append(
+                Chunk(
+                    id=chunk_id,
+                    text=text,
+                    metadata={
+                        "source": document.filename,
+                        "page": desc["page"],
+                        "section": "",
+                        "content_type": "image_description",
+                    },
+                )
+            )
+
+        return chunks

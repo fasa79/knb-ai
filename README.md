@@ -2,6 +2,10 @@
 
 An AI-powered tool that lets you **ask questions about Khazanah's Annual Review in plain English** and get accurate answers with source citations. Think of it as a smart assistant that has read the entire annual report and can instantly find the information you need.
 
+> **Video Walkthrough:** [Watch the 3–5 min demo on Loom](https://www.loom.com/share/PLACEHOLDER)
+>
+> **Live Demo:** [knb-ai.fadhs.com](https://knb-ai.fadhs.com)
+
 ---
 
 ## What This Tool Does
@@ -12,14 +16,22 @@ Instead of manually searching through a 20+ page annual report PDF, you can:
 - **View structured data** — portfolio companies, financial metrics, and key highlights extracted automatically
 - **Upload new reports** — drop in a new PDF and the system processes it automatically
 
+The tool has three main pages:
+
+| Page | What You Do There |
+|------|------------------|
+| **Documents** (`/`) | Upload PDFs and process them into the knowledge base |
+| **Chat** (`/chat`) | Ask questions in natural language, get cited answers |
+| **Extract** (`/extract`) | Pull structured data (company lists, financials, metrics) into tables you can export |
+
 ---
 
-## How It Works (Architecture)
+## How It Works
 
 ```
 ┌──────────────┐     ┌──────────────┐     ┌───────────────────┐
-│  You (User)  │────▶│   Frontend   │────▶│   FastAPI Backend  │
-│              │◀────│  (Next.js)   │◀────│                    │
+│  You (User)  │────▶│   Frontend   │────▶│   Backend API      │
+│              │◀────│  (Next.js)   │◀────│   (FastAPI)        │
 └──────────────┘     └──────────────┘     └────────┬──────────┘
                                                    │
                                           ┌────────▼──────────┐
@@ -34,8 +46,7 @@ Instead of manually searching through a 20+ page annual report PDF, you can:
                                              │
                                     ┌────────▼──────────┐
                                     │  Vector Database   │
-                                    │  (ChromaDB —       │
-                                    │   searchable       │
+                                    │  (searchable       │
                                     │   knowledge base)  │
                                     └───────────────────┘
 ```
@@ -43,71 +54,22 @@ Instead of manually searching through a 20+ page annual report PDF, you can:
 **In simple terms:**
 
 1. You upload a PDF annual report
-2. The system reads and understands every page — text, tables, charts
-3. It breaks the document into smart, meaningful pieces and stores them in a searchable knowledge base
-4. When you ask a question, the AI finds the most relevant pieces and uses them to generate an accurate answer
+2. The system reads every page — text, tables, charts — and breaks it into meaningful pieces
+3. Those pieces are stored in a searchable knowledge base
+4. When you ask a question, the AI finds the most relevant pieces and writes an accurate answer
 5. Every answer comes with page numbers so you can verify it yourself
-
----
-
-## Section 1: Data Ingestion & Pipeline
-
-### How We Process PDFs
-
-The system uses a **3-layer hybrid chunking strategy** — meaning it adapts to different types of content instead of using a one-size-fits-all approach:
-
-#### Layer 1 — Content-Type Detection
-Each section of the PDF is automatically classified as:
-| Type | How It's Handled | Why |
-|------|-----------------|-----|
-| **Tables** | Kept whole, never split | Splitting a financial table destroys its meaning |
-| **Bullet lists** | Grouped as a single unit | A list of initiatives only makes sense as a whole |
-| **Financial figures** | Kept with surrounding context | "RM21.1b" alone is meaningless — it needs "total assets" next to it |
-| **Narrative text** | Smart splitting (see Layer 2) | Long paragraphs need to be split at natural topic boundaries |
-
-#### Layer 2 — Embedding-Based Semantic Splitting
-For narrative text, instead of splitting at fixed character counts (which can break mid-sentence), we:
-1. Break text into sentences
-2. Use AI to measure how **similar** consecutive sentences are to each other
-3. Where the topic changes (similarity drops), that's where we split
-
-This is **data-driven** — it works regardless of how the PDF is formatted.
-
-#### Layer 3 — Context Enrichment
-Before storing each piece, we tag it with where it came from:
-```
-[Source: KAR-2026_Press-Release | Page 2 | Section: Financial Performance | Type: financial]
-Khazanah recorded a TWRR of 8.4%...
-```
-This makes searches much more accurate because the AI knows the context, not just the isolated words.
-
-### Technology Choices
-
-| Component | Choice | Why |
-|-----------|--------|-----|
-| **PDF Parsing** | PyMuPDF + pdfplumber | PyMuPDF is fast for text extraction; pdfplumber is best for detecting tables in complex layouts |
-| **Embeddings** | Google `gemini-embedding-001` (3072-dim) | Google's latest embedding model with full 3072-dimension vectors. Uses asymmetric task types (`RETRIEVAL_DOCUMENT` for indexing, `RETRIEVAL_QUERY` for search) for better retrieval. Free tier: 100 requests/min. Local fallback (`all-MiniLM-L6-v2`, 384-dim) available via config |
-| **Vector Database** | ChromaDB | Simple local storage, no external services needed. Uses `upsert` for idempotent writes — safe for both append and re-index operations |
-| **Chunk sizing** | ~600 tokens with 100-token overlap | Large enough to carry meaning, small enough for precise retrieval. Overlap ensures we don't lose context at boundaries |
-
-### Pipeline Performance
-Processing 4 Khazanah PDFs (61 pages total):
-- **115 high-quality chunks** created
-- **~68 seconds** total processing time (includes rate-limited Google embedding API calls at 0.7s intervals; retry with backoff on 429 errors)
-- Automatic deduplication and noise filtering (headers, footers, page numbers removed)
 
 ---
 
 ## Setup Instructions
 
 ### Prerequisites
-- [Docker Desktop](https://docs.docker.com/get-docker/) (recommended)
+- [Docker Desktop](https://docs.docker.com/get-docker/)
 - A Google Gemini API key ([get one free here](https://aistudio.google.com/apikey))
 
-### One-Command Setup (Docker)
+### Option 1: One-Command Setup (Recommended)
 
 ```bash
-# Clone and run the setup script — it prompts for your API key, then builds and starts everything
 git clone <repo-url>
 cd knb-ai
 
@@ -119,329 +81,290 @@ bash setup.sh
 ```
 
 The script will:
-1. Check Docker is installed and running
-2. Prompt for your Gemini API key (or reuse existing `.env`)
-3. Generate `.env` from the template
-4. Build and start both services via `docker compose`
-5. Print URLs when ready
+1. Check that Docker is installed and running
+2. Ask for your Gemini API key
+3. Build and start both services
+4. Print the URLs when ready
 
 ```
 Frontend:  http://localhost:3000
 API Docs:  http://localhost:8000/docs
 ```
 
-### Manual Setup (without Docker)
+Then: open http://localhost:3000 → Upload PDFs → Click "Run Ingestion" → Go to Chat.
+
+### Option 2: Docker Compose (manual .env)
 
 <details>
 <summary>Click to expand</summary>
 
-Requires Python 3.12+ and Node.js 20+.
-
 ```bash
-# 1. Clone the repository
 git clone <repo-url>
 cd knb-ai
-
-# 2. Set up environment
 cp .env.example .env
-# Edit .env and add your GEMINI_API_KEY
+# Edit .env — set GEMINI_API_KEY=your-key-here
 
-# 3. Install Python dependencies
-python -m venv venv
-# Windows:
-.\venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
-pip install -r app/requirements.txt
-
-# 4. Install frontend dependencies
-cd frontend && npm install && cd ..
-
-# 5. Start the backend
-uvicorn app.main:app --reload --port 8000
-
-# 6. Start the frontend (new terminal)
-cd frontend && npm run dev
-
-# 7. Open http://localhost:3000
-# Upload PDFs → Click "Run Ingestion" → Start asking questions
+docker compose up --build
+# Frontend: http://localhost:3000
+# API Docs: http://localhost:8000/docs
 ```
 
 </details>
+
+### Option 3: Run Locally (no Docker)
+
+<details>
+<summary>Click to expand — requires Python 3.12+ and Node.js 20+</summary>
+
+```bash
+git clone <repo-url>
+cd knb-ai
+
+# Environment
+cp .env.example .env
+# Edit .env — set GEMINI_API_KEY=your-key-here
+
+# Backend
+python -m venv venv
+# Windows: .\venv\Scripts\activate
+# macOS/Linux: source venv/bin/activate
+pip install -r app/requirements.txt
+uvicorn app.main:app --reload --port 8000
+
+# Frontend (new terminal)
+cd frontend && npm install && npm run dev
 ```
+
+Open http://localhost:3000 → Upload PDFs → Click "Run Ingestion" → Go to Chat.
+
+</details>
 
 ---
 
-## Section 2: RAG-Powered Query Engine
+## How We Built It
 
-### How Questions Get Answered
+### Document Processing
 
-When you type a question in the chat, here's what happens behind the scenes:
+The system doesn't just split PDFs at fixed intervals. It adapts to the content:
 
-```
-Your Question
-     │
-     ▼
-┌────────────────────┐
-│  Agent Supervisor   │ ← Classifies your intent (search / extract / compare / off-topic)
-│  + Semantic Cache   │ ← Checks if a similar question was recently answered
-└────────┬───────────┘
-         │
-         ▼
-┌────────────────────┐
-│  Hybrid Search      │ ← Finds the most relevant information from the report
-│  (Vector + BM25)    │
-└────────┬───────────┘
-         │
-         ▼
-┌────────────────────┐
-│  LLM Generation     │ ← Writes a natural-language answer using only the found context
-│  (Gemini Flash)     │
-└────────┬───────────┘
-         │
-         ▼
-  Answer + Sources + Confidence Score
-```
+- **Tables** (like financial data) are kept whole — splitting a table destroys its meaning
+- **Bullet lists** and grouped items are kept together
+- **Long narratives** are split at natural topic boundaries using AI similarity detection
+- Every piece is tagged with its source file, page number, and section — so citations are always accurate
 
-### Hybrid Search: Why Two Retrieval Methods?
+We process Khazanah Annual Review PDFs into **searchable chunks** in about 60 seconds.
 
-| Method | What It Does | Good At | Bad At |
-|--------|-------------|---------|--------|
-| **Vector search** (semantic) | Finds chunks by *meaning* similarity | Paraphrased questions, synonyms | Exact numbers and acronyms |
-| **BM25** (keyword) | Finds chunks by *word overlap* | Exact terms like "TWRR", "RM21.1b" | Understanding rephrased questions |
+### Question Answering
 
-Using both gives better results than either alone. We merge them using **Reciprocal Rank Fusion (RRF)** with a **keyword boost**:
+When you ask a question, the system uses **two search methods** working together:
 
-- Each method ranks its results independently
-- RRF combines the ranks (not the raw scores) with equal 50/50 weighting
-- **Keyword boost**: if your question contains specific terms (acronyms like "TWRR", "RAV", or exact figures) and BM25 finds chunks matching those terms, those chunks get an extra boost in the final ranking — even if vector search missed them entirely
-- The top 6 most relevant chunks are passed to the LLM
+- **Meaning-based search** finds content by understanding what you mean (good for paraphrased questions)
+- **Keyword search** finds content by exact word matching (good for acronyms like "TWRR" and specific figures like "RM21.1b")
 
-This was a deliberate improvement. In early testing, asking *"What was Khazanah's TWRR?"* failed because the TWRR data lived in a table that embedded poorly (cosine score 0.25). BM25 ranked it #1, but vector search couldn't find it at all. With the keyword boost, the TWRR chunks now rank #1 and #2 after fusion.
+Both sets of results are merged so you get the best of both. In early testing, questions about TWRR failed because the data was in a table that meaning-based search couldn't find — adding keyword search fixed this.
 
-**Why not add a reranker?** With only 115 chunks, a reranker adds latency and API cost for minimal improvement. RRF fusion already produces high-quality results. If the corpus grows to 1000+ chunks, adding a cross-encoder reranker would be worthwhile.
+Every answer includes a **confidence score**. If the system can't find relevant information, it says so instead of guessing. This prevents the tool from confidently making things up.
 
-### Intent Classification
+An **intelligent router** reads each question and decides what to do: search for an answer, extract structured data, compare across years, or politely refuse off-topic questions.
 
-The Agent Supervisor examines each question and classifies it before routing:
+Repeated questions are answered instantly from a **cache** — no extra AI calls needed.
 
-| Intent | What It Means | Example |
-|--------|-------------|---------|
-| **search** | General Q&A about the report | "What was the TWRR?" |
-| **extract** | Structured data extraction | "List all portfolio companies" |
-| **compare** | Cross-year comparison | "How did assets change from 2024 to 2025?" |
-| **off_topic** | Not related to the annual review | "What's the weather today?" |
+### Structured Data Extraction
 
-This classification uses a single lightweight LLM call with zero-shot prompting.
+Beyond Q&A, the system can pull structured data into clean tables:
 
-### Confidence Scoring
+| Type | What It Extracts |
+|------|-----------------|
+| **Portfolio Companies** | Company name, sector, ownership stake |
+| **Financial Metrics** | Key figures like total assets, TWRR, dividends |
+| **Investment Performance** | Returns by asset class with yearly breakdown |
+| **Key Highlights** | Strategic initiatives, ESG programs, milestones |
+| **Custom** | Anything you ask for — the AI figures out the structure |
 
-Every answer gets a confidence level based on how relevant the retrieved chunks are:
+You can access this from the dedicated Extract page (click a type, get a table, export to JSON) or directly in chat by asking something like *"List all portfolio companies."*
 
-| Level | Avg Similarity | What It Means |
-|-------|---------------|---------------|
-| **High** | ≥ 0.50 | Strong evidence found, answer is reliable |
-| **Medium** | 0.40 – 0.50 | Partial evidence, answer may be incomplete |
-| **Low** | 0.30 – 0.40 | Weak evidence, answer flagged with warning |
-| **None** | < 0.30 | No relevant info found, question refused |
+We tested extraction across 11 different query types and verified every result against the actual PDF content — **zero hallucinated values** were found.
 
-This prevents hallucination — the system refuses to guess when it doesn't find relevant information.
+### API & Deployment
 
-### Semantic Cache
+The backend exposes a REST API with interactive documentation at `/docs`. Every endpoint has typed request/response models, input validation, and consistent error handling.
 
-Repeated or similar questions are answered instantly from cache:
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/health` | GET | Health check — returns status and available PDFs |
+| `/api/upload` | POST | Upload a PDF to the data directory |
+| `/api/documents` | GET | List uploaded documents with file sizes |
+| `/api/documents/{filename}` | DELETE | Remove a document from the data directory |
+| `/api/ingest` | POST | Run ingestion pipeline (parse → chunk → embed → store) |
+| `/api/ingest/status` | GET | Current vector store status and per-file chunk counts |
+| `/api/query` | POST | Ask a natural-language question (routed by agent supervisor) |
+| `/api/extract` | POST | Extract structured data into typed JSON |
+| `/api/models` | GET | List available LLM models and rate limits |
 
-- Uses cosine similarity (threshold: 0.95) to match semantically equivalent questions
-- LRU eviction keeps cache at 100 entries max
-- Cache hits skip both retrieval and LLM calls, reducing latency and API costs
+Full OpenAPI spec: [knb-ai-api.fadhs.com/docs](https://knb-ai-api.fadhs.com/docs) or http://localhost:8000/docs
 
-### Prompt Engineering
+The project ships as a Docker Compose setup with two containers (backend + frontend) that start with one command.
 
-The RAG prompt is designed with strict rules:
-1. **Only cite from provided context** — never make up information
-2. **Use numbered references** — citations appear as `[1]`, `[2]` in the answer text, matching the source numbers. This keeps the answer clean and readable (inspired by how Google Gemini displays citations)
-3. **Admit uncertainty** — if the context doesn't fully answer, say so
-4. **Structured format** — answers use paragraphs, bullet points, and tables as appropriate
+---
 
-### Technology Choices
+## Design Decisions & Trade-offs
 
-| Component | Choice | Why |
-|-----------|--------|-----|
-| **Semantic search** | ChromaDB cosine similarity | Already stores our embeddings; no extra service needed |
-| **Keyword search** | rank-bm25 (BM25Okapi) | Industry-standard keyword ranking, runs locally, no setup |
-| **Fusion** | Reciprocal Rank Fusion (α=0.5) + keyword boost | Equal weighting ensures keyword matches aren't buried; boost surfaces exact-term hits |
-| **LLM** | Google Gemini (swappable models) | Free tier, multiple models available. Default: Gemini 3.1 Flash Lite (500 requests/day) |
-| **Rate limiting** | Exponential backoff retry (5s → 10s) | Handles free tier quota limits gracefully. Internal langchain retries disabled to avoid double-retry |
-| **Caching** | In-memory semantic cache | Zero-cost, instant responses for repeated queries |
-
-### Frontend Chat UI
-
-The chat interface at `/chat` provides:
-- **Model selector** in the header — switch between Gemini models (3.1 Flash Lite at 500 rpd, 2.5 Flash, 2.5 Flash Lite, 3 Flash) with rate limits shown
-- **Suggested questions** to get started
-- **Inline citation badges** — `[1]`, `[2]` in the answer text are rendered as clickable blue superscript badges that highlight the corresponding source
-- **Compact source chips** below each answer showing document name, page number, and content type — click to expand the source snippet in a popover
-- **Confidence badges** (green/yellow/orange/red) on every answer
-- **Markdown rendering** with bold text, bullet lists, and paragraph breaks
-- **Cache indicator** showing when an answer came from cache
-- **Navigation** between Documents (upload/ingest) and Chat pages
+| Decision | What We Chose | Why | With More Time |
+|----------|--------------|-----|----------------|
+| **Embedding model** | Google `gemini-embedding-001` (3072-dim) | Best free embedding model available; full dimensions preserve information for future use cases | Use a dedicated embedding service like Cohere or OpenAI for higher throughput |
+| **Vector database** | ChromaDB (local) | Zero setup, runs anywhere, good enough for <1000 chunks | Switch to Qdrant or Pinecone for production scalability and filtering |
+| **LLM** | Google Gemini (free tier, swappable models) | Multiple models available, generous free quota (500 req/day on lite). Model can be switched from the UI | Use a paid tier or self-hosted model for consistent latency and no rate limits |
+| **Search strategy** | Hybrid (vector + keyword + fusion) | Vector alone missed table data; keyword alone missed paraphrased questions. Combining both solved both problems | Add a cross-encoder reranker once the corpus grows past ~1000 chunks |
+| **Chunking** | Content-aware (tables kept whole, narrative split by topic) | Naive fixed-size splitting broke tables and mixed unrelated content together | Add LLM-generated table summaries at ingestion time for even better table retrieval |
+| **Structured extraction** | LLM constrained output with fallback | Primary method forces exact schema compliance; fallback catches cases where the model struggles | Fine-tune a smaller model specifically for extraction to reduce fallback rate |
+| **Caching** | In-memory semantic cache | Zero cost, instant for repeated queries | Use Redis for persistence across restarts and shared across instances |
+| **Frontend** | Next.js with Tailwind | Fast to build, good developer experience, easy to deploy | Add real-time streaming responses, dark mode, and PDF viewer integration |
 
 ---
 
 ## Known Limitations
 
-- **Image-heavy PDFs**: Presentation decks with mostly visual content (charts as images) will have limited text extraction. We extract what text exists but can't yet read charts as images.
-- **Embedding rate limits**: Google embedding free tier allows 100 requests/minute. The system rate-limits at 0.7s intervals and retries on 429 errors with exponential backoff (40s → 80s). Ingestion of 4 PDFs takes ~68s instead of ~25s due to this pacing. If switching to local embeddings (`all-MiniLM-L6-v2`), ingestion drops to ~25s with no rate limits.
-- **Free tier LLM limits**: Gemini free tier has daily rate limits per model. The default model (Gemini 3.1 Flash Lite) allows 500 requests/day. Each query uses 2 LLM calls (intent classification + answer generation). Switch models from the chat UI dropdown if one runs out.
-- **Tables embed poorly**: Financial tables still score lower in vector similarity than narrative text, though `gemini-embedding-001` handles them significantly better than the previous local model (avg score improved from 0.25–0.35 to 0.55–0.65). The keyword boost in RRF fusion further mitigates this. A potential next step: use the LLM to generate a natural-language summary of each table at ingestion time (e.g. *"This table shows TWRR by asset class from 2019–2024"*) and embed that summary alongside the raw table.
+- **Charts as images**: Presentation decks with charts stored as images can be analyzed using an opt-in vision model (`use_vision=True` during ingestion). The system sends all extracted images to Gemini Vision for text descriptions that get embedded alongside the source text. A basic size filter skips tiny icons (<30KB) and full-page backgrounds (>1MB). This is rate-limited and adds processing time, so it's off by default.
+- **Embedding rate limits**: Google's free tier allows 100 requests/minute. Ingestion takes ~68s due to pacing (vs ~25s with local embeddings). The system handles this automatically with rate limiting and retry.
+- **Daily LLM quota**: The default model allows 500 requests/day. Each question uses 2 calls (classification + answer). You can switch models from the chat dropdown if one runs out.
+- **Tables in vector search**: Financial tables score lower in meaning-based search than narrative text. The keyword search and fusion boost mitigate this, but it's not fully solved.
+- **Custom extraction fallback**: On complex queries, the AI sometimes can't produce structured output directly and falls back to a two-step approach (generate then validate). This works but is slightly less reliable — in testing, 7 of 11 custom queries needed fallback.
 
 ---
 
----
+## Stretch Goals Completed
 
-## Section 3: Structured Data Extraction
+Beyond the core requirements, we implemented:
 
-### What It Does
+- **Semantic caching** — repeated or similar questions answered instantly from cache
+- **Hallucination guardrails** — confidence scoring, refusal when no evidence is found, off-topic detection
+- **Agentic routing** — the system automatically decides whether to search, extract, or compare based on the question
+- **One-command Docker deployment** — setup scripts that prompt for API key and handle everything
+- **Multi-year comparison** — ask questions like *"How did total assets change from 2024 to 2025?"* and the system retrieves data from both years, labels sources by year, and generates a structured comparison table. Automatically detects years in queries, maps them to the correct source documents (KAR-2025 covers FY2024, KAR-2026 covers FY2025), and uses a dedicated comparison prompt.
+- **Multi-modal chart analysis** — opt-in vision pipeline (`use_vision=True`) sends extracted images to Gemini Vision for text descriptions. A basic size filter skips tiny icons (<30KB) and full-page backgrounds (>1MB). Descriptions are embedded as searchable chunks alongside the source text.
+- **RAGAS evaluation pipeline** — automated quality scoring on 15 ground-truth questions:
 
-Beyond Q&A, the system can **extract structured data** from the Annual Review into clean, typed JSON objects. This is different from the chat — instead of generating a free-text answer, it fills in a predefined schema using only the report's actual content.
+  | Metric | Score | What It Measures |
+  |--------|-------|-----------------|
+  | Context Precision | **1.00** | Are the top-ranked chunks actually relevant? |
+  | Context Recall | **1.00** | Were all relevant chunks retrieved? |
+  | Faithfulness | **0.74** | Is the answer grounded in the retrieved context? |
+  | Answer Relevancy | **0.62** | Does the answer directly address the question? |
 
-### Pre-Defined Extraction Types
-
-| Type | What It Extracts | Example Output |
-|------|-----------------|----------------|
-| **Portfolio Companies** | Company name, sector, ownership %, asset class, description | `{"name": "EDOTCO", "sector": "Digital Infrastructure", "ownership_pct": 31.7}` |
-| **Financial Metrics** | Metric name, value, year, unit, source context | `{"metric_name": "Profit from operations", "value": "5.6", "year": "2025", "unit": "RM billion"}` |
-| **Investment Performance** | Asset class, portfolio weight, TWRR, yearly returns | `{"asset_class": "Public Markets: Malaysia", "portfolio_weight_pct": 57.5, "twrr_latest": "6.5%"}` |
-| **Key Highlights** | Category, title, description, value, year | `{"category": "ESG", "title": "Community Investment", "value": "RM3.4 billion"}` |
-| **Custom** | User-defined — any extraction request | User types what they want and the LLM figures out the structure |
-| **All** | Runs all four pre-defined types at once | Combined JSON with all sections |
-
-### How It Works
-
-```
-  User selects extraction type (or types "List all portfolio companies" in chat)
-      │
-      ▼
-  ┌─────────────────────────┐
-  │  Targeted Retrieval      │  ← Multiple search queries per type for broad coverage
-  │  (3-4 queries × 10 each) │     e.g. "portfolio companies" + "investee" + "ownership"
-  └──────────┬──────────────┘
-             │
-             ▼  Top 15 unique chunks (deduplicated, ranked)
-  ┌─────────────────────────┐
-  │  LLM Structured Output   │  ← Gemini with_structured_output(PydanticSchema)
-  │  (constrained JSON)      │     Forces output to match the schema exactly
-  └──────────┬──────────────┘
-             │
-             ▼  If structured output returns None (model can't parse)
-  ┌─────────────────────────┐
-  │  Fallback: Plain JSON    │  ← Free-form generation + Pydantic model_validate()
-  │  (parse + validate)      │     Schema is included in prompt as reference
-  └──────────┬──────────────┘
-             │
-             ▼
-  Validated structured data (Pydantic models → JSON)
-```
-
-**Two-stage extraction approach:**
-1. **Primary**: LangChain's `with_structured_output()` forces the LLM to generate JSON matching the Pydantic schema directly. This is the most reliable method.
-2. **Fallback**: If the structured output returns None (can happen with complex contexts on smaller models), the system falls back to plain text generation with the schema embedded in the prompt, then validates with `model_validate()`.
-
-### Two Access Paths
-
-1. **Dedicated `/extract` page**: Click a type → get a sortable table instantly. Export to JSON. Ideal for browsing all extracted data.
-2. **Via chat**: Type "List all portfolio companies" → agent routes to `extract` intent → returns structured data as a formatted table inline in the chat conversation.
-
-Both use the same underlying extraction tool, ensuring consistent results.
-
-### Schema Design
-
-Each schema uses **Pydantic models** with typed fields and descriptions:
-
-```python
-class PortfolioCompany(BaseModel):
-    name: str                          # "Tenaga Nasional Berhad"
-    sector: str | None                 # "Power"
-    ownership_pct: float | None        # 21.6
-    asset_class: str | None            # "Public Markets: Malaysia"
-    description: str | None            # Brief role from the report
-
-class FinancialMetric(BaseModel):
-    metric_name: str                   # "Realisable Asset Value (RAV)"
-    value: str                         # "RM156 billion"
-    year: str | None                   # "2025"
-    unit: str | None                   # "RM billion"
-    source_context: str | None         # Where this appears
-```
-
-**Why nullable fields?** Not every company has an ownership percentage listed, and not every metric has a clear year. Setting these to `None` (instead of guessing) ensures the extraction is honest about what the report actually says.
-
-### Technology Choices
-
-| Component | Choice | Why |
-|-----------|--------|-----|
-| **Schema framework** | Pydantic v2 | Type validation, JSON schema generation, model_validate() for fallback parsing |
-| **Structured output** | LangChain `with_structured_output()` | Forces LLM to conform to schema. Falls back to prompt-based extraction when it returns None |
-| **Retrieval** | Multi-query targeted retrieval | Each extraction type uses 3-4 specialised search queries for broad coverage (vs single query for Q&A) |
-| **Chunk limit** | Top 15 per extraction | More chunks than Q&A (6) since extraction needs broader coverage of the document |
+  Perfect retrieval scores confirm the hybrid search pipeline works well. Faithfulness and relevancy are impacted by free-tier rate limits causing some RAGAS judge calls to time out — with a paid API, these would be higher. Run it yourself: `python -m app.evaluation.run_eval`
 
 ---
 
-## Section 4: API Design & Deployment
+## Design Questions
 
-### API Endpoints
+### 1. If this tool were deployed internally at Khazanah for daily use by analysts, what would you change?
 
-All endpoints live under the `/api` prefix. Interactive docs are available at `/docs` (Swagger UI) and `/redoc` (ReDoc).
+Having worked on production RAG systems — where I enhanced a RAG application with hybrid search to reach 95% retrieval accuracy across APAC affiliates — I know the gap between a working prototype and a reliable internal tool is mostly about infrastructure and trust.
 
-| Method | Endpoint | Tag | Description |
-|--------|----------|-----|-------------|
-| `GET` | `/api/health` | System | Health check — returns PDF count and filenames |
-| `GET` | `/api/models` | System | List available LLM models with rate limits |
-| `POST` | `/api/upload` | Documents | Upload a PDF (100 MB max, extension allowlist) |
-| `GET` | `/api/documents` | Documents | List all uploaded PDFs with file sizes |
-| `POST` | `/api/ingest` | Ingestion | Run full pipeline: parse → chunk → embed → store |
-| `GET` | `/api/ingest/status` | Ingestion | Current vector store stats (chunk count, config) |
-| `POST` | `/api/query` | Query | Natural-language Q&A with citations and confidence |
-| `POST` | `/api/extract` | Extraction | Structured data extraction into typed JSON |
+**Infrastructure changes:**
+- **Swap ChromaDB for a managed vector database** (Qdrant Cloud or Pinecone). ChromaDB is file-based and locks during writes — if one analyst is querying while another triggers ingestion, they'll block each other. A managed DB handles concurrent access natively and supports metadata filtering (e.g. filter by report year or document type).
+- **Move off free-tier LLM** to a paid API or self-hosted model via vLLM. The current 500 requests/day limit would be exhausted by 20 analysts before lunch. In my current role, we use Portkey as a centralized LLM gateway to manage API keys, route across providers, and guarantee consistent latency for user-facing tools — a similar pattern would work here.
+- **Add a task queue** (Celery + Redis or Airflow) for ingestion. Right now, ingestion blocks the API process. I've built ETL pipelines with Apache Airflow in previous roles — the same pattern applies here: ingestion should run asynchronously so the API stays responsive.
+- **Put the API behind an API gateway** with SSO/OAuth authentication, per-user rate limiting, and audit logging. In my experience, every internal tool in a regulated enterprise requires SSO integration — it's a non-negotiable for production deployment.
 
-### API Design Decisions
+**Data & quality:**
+- Add document versioning — track which version of each report was ingested, who uploaded it, when. This matters when analysts need to know if they're querying the latest data.
+- Implement a feedback loop — let analysts flag wrong answers. I've seen this work well in practice: even a simple thumbs-up/down button generates signal you can use to re-tune prompts and identify weak spots in the knowledge base.
 
-**Typed response models:** Every endpoint declares a Pydantic `response_model`, so the OpenAPI spec has full JSON schemas. Frontend devs and API consumers see exact field types, required/optional markers, and examples in the docs.
-
-**Input validation:** `QueryRequest.question` is constrained to 1–2000 characters. `ExtractionType` is an `Enum`, so invalid types get a 422 before hitting application code. Upload enforces a `.pdf` extension allowlist and 100 MB size cap. Filenames are sanitised to prevent path traversal.
-
-**Error responses:** All error-returning endpoints declare `responses={400: ..., 500: ...}` with an `ErrorResponse` model (`{"error": str, "detail": str | None}`). A global exception handler catches unhandled errors and returns consistent JSON instead of HTML stack traces.
-
-**CORS:** Allows `localhost:3000` and `127.0.0.1:3000` only — tightened to just the frontend origin rather than `*`.
-
-### Docker Compose
-
-The project ships with a `docker-compose.yml` for one-command deployment:
-
-```bash
-cp .env.example .env
-# Edit .env with your GEMINI_API_KEY
-docker compose up --build
-# Backend: http://localhost:8000 (Swagger: /docs)
-# Frontend: http://localhost:3000
-```
-
-**Services:**
-| Service | Base Image | Dockerfile | Ports | Notes |
-|---------|-----------|------------|-------|-------|
-| `backend` | `python:3.12-slim` | `app/Dockerfile` | 8000 | FastAPI + ChromaDB, health check on `/api/health` |
-| `frontend` | `node:22-alpine` | `frontend/Dockerfile` | 3000 | Next.js production build, depends on backend health |
-
-**Volumes:** ChromaDB data is persisted in a named Docker volume (`chroma_data`). Uploaded PDFs are bind-mounted from `./app/data` so they survive container restarts.
-
-### Frontend Pages
-
-| Page | Route | Purpose |
-|------|-------|---------|
-| **Documents** | `/` | Upload PDFs, trigger ingestion, view processing status |
-| **Chat** | `/chat` | Natural-language Q&A with model selector, citations, confidence badges |
-| **Extract** | `/extract` | Structured extraction with type selector, sortable tables, JSON export |
+**Observability:**
+- Add structured logging and request tracing (OpenTelemetry) with a Grafana dashboard. You need to know which queries fail, which take too long, and which documents get the most questions. Having set up CI/CD and monitoring pipelines in previous roles, I can say that observability is what separates a tool people trust from one they abandon.
 
 ---
 
-*More sections will be added as modules are completed.*
+### 2. A user reports that the tool confidently returned an incorrect answer and shared it in a presentation. How would you prevent this?
+
+This is a real risk I've thought about — in my current role, the extraction pipelines I built are used for competitive intelligence, so accuracy is non-negotiable.
+
+**First: investigate the root cause.**
+Check the specific query: what chunks were retrieved, what confidence score was assigned, and what the LLM generated. The failure usually falls into one of three buckets:
+- **Bad parsing** — the PDF chunk was garbled or incomplete (e.g. a table that didn't parse correctly)
+- **Bad retrieval** — the relevant chunk existed but wasn't surfaced (search failed)
+- **Bad generation** — the LLM hallucinated despite having correct context
+
+Each failure type has a different fix. You can't solve a parsing problem by tweaking prompts.
+
+**What's already in place:**
+The current system has confidence scoring — it refuses to answer when evidence is weak. Every answer shows source page numbers so analysts can verify. But clearly, the thresholds may need tightening based on this incident.
+
+**What I would add:**
+- **Automated fact-checking** — after generating an answer, run a second LLM call that checks: *"Is this answer actually supported by the provided context?"* If the verification disagrees, flag the answer as "unverified" rather than showing high confidence. This is a lightweight cross-check that catches most hallucinations.
+- **Visible disclaimer** — every answer should carry a note: *"AI-generated — verify against source before external use."* It sets the right expectation. Tools that are used for presentations need guardrails that are visible, not just technical.
+- **RAGAS evaluation pipeline** — run regular automated evaluations against a curated question-answer set to catch regressions. Track faithfulness (does the answer match the context?) and relevancy (did we retrieve the right chunks?) over time. This is the same principle as regression testing in CI/CD — you want to know when a pipeline change makes things worse before users notice.
+- **Audit trail** — log every question, answer, sources used, and confidence score. When something goes wrong, you need to trace exactly what happened. This also enables post-incident analysis and helps identify patterns.
+
+---
+
+### 3. You need to push an update to the RAG pipeline, but the tool is actively being used by 20 analysts. How do you roll out the change safely?
+
+In previous roles, I managed deployments on Kubernetes with CI/CD pipelines on GitLab — rolling updates to production services without downtime was a regular part of the job. The same principles apply here.
+
+**Step 1: Shadow test before touching production.**
+Run the updated pipeline against a test set of known queries — the same questions analysts commonly ask. Compare the new answers against the current answers side by side. If quality drops on any query, investigate before proceeding. This is cheap and catches most regressions.
+
+**Step 2: Blue-green deployment.**
+Deploy the updated pipeline as a separate instance ("green") alongside the current one ("blue"). With Docker and Kubernetes, this is straightforward — I'd spin up a green deployment behind the same load balancer.
+- Route a small percentage of traffic (10%, or just 2-3 volunteer analysts) to green.
+- Monitor error rates, confidence scores, and response times on green vs. blue.
+- If green performs equally or better after a day, gradually shift all traffic.
+- If green shows problems, roll back instantly by routing everything back to blue. Zero downtime.
+
+**Step 3: Handle vector store changes carefully.**
+If the update changes embeddings or chunking (not just prompts), the risk is higher — you can't serve old and new embeddings from the same index. In this case:
+- Build the new index in parallel (a new ChromaDB collection alongside the old one).
+- Switch the API to read from the new collection only after shadow testing confirms quality.
+- Keep the old collection for a rollback window (e.g. 7 days).
+
+**Step 4: Communicate.**
+Notify analysts before the change: *"We're improving the search pipeline this week. You may notice slightly different answers. Please flag anything that looks off."* This is underrated — it turns 20 analysts into 20 testers, and it builds trust because you're being transparent rather than making silent changes.
+
+What I would **not** do: push directly to production during business hours without a rollback plan. Analysts lose trust fast if the tool goes down or starts giving worse answers after an update.
+
+---
+
+## Project Structure
+
+```
+knb-ai/
+├── app/                        # Backend (Python/FastAPI)
+│   ├── main.py                 # API entry point
+│   ├── config.py               # Central configuration
+│   ├── Dockerfile              # Backend container
+│   ├── requirements.txt        # Python dependencies
+│   ├── api/                    # Response models & schemas
+│   ├── agents/                 # Intent router + tools
+│   │   ├── supervisor.py       # Agent supervisor (routes questions)
+│   │   └── tools/              # Search, extraction, comparison tools
+│   │       ├── search_tool.py  # Hybrid search (vector + keyword + RRF)
+│   │       ├── extraction_tool.py  # Structured data extraction
+│   │       └── compare_tool.py     # Multi-year comparison
+│   ├── core/                   # Shared services
+│   │   ├── llm_client.py       # LLM provider abstraction
+│   │   ├── embeddings.py       # Embedding service (Google/local)
+│   │   ├── vector_store.py     # ChromaDB wrapper
+│   │   ├── keyword_search.py   # BM25 keyword search
+│   │   ├── pdf_parser.py       # PDF parsing (text, tables, images)
+│   │   ├── vision_parser.py    # Gemini Vision for chart analysis
+│   │   └── cache.py            # Semantic query cache
+│   ├── ingestion/              # PDF processing pipeline
+│   ├── extraction/             # Pydantic schemas for structured output
+│   └── evaluation/             # RAGAS evaluation pipeline
+│       ├── run_eval.py         # Evaluation runner
+│       ├── dataset.py          # Ground-truth Q&A pairs
+│       └── results/            # Saved evaluation results
+├── frontend/                   # Frontend (Next.js)
+│   ├── Dockerfile              # Frontend container
+│   └── src/app/
+│       ├── page.tsx            # Document upload & ingestion
+│       ├── chat/page.tsx       # Q&A chat interface
+│       └── extract/page.tsx    # Structured data extraction
+├── docker-compose.yml          # One-command deployment
+├── setup.ps1                   # Windows setup script
+├── setup.sh                    # macOS/Linux setup script
+├── .env.example                # Environment template
+└── README.md
+```

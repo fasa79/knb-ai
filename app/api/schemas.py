@@ -56,12 +56,19 @@ class IngestResponse(BaseModel):
     details: list[IngestDocumentDetail]
 
 
+class FileIngestStatus(BaseModel):
+    filename: str
+    chunks: int
+    ingested: bool
+
+
 class IngestStatusResponse(BaseModel):
     chunks_stored: int
     data_dir: str
     pdf_files: list[str]
     chunk_size: int
     chunk_overlap: int
+    file_status: list[FileIngestStatus] = []
 
 
 # ── Query ─────────────────────────────────────────────────────────

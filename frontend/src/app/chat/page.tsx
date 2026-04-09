@@ -59,6 +59,11 @@ const SUGGESTED_QUESTIONS = [
   "What is Khazanah's total assets and realisable asset value?",
 ];
 
+const COMPARE_QUESTIONS = [
+  "How did Khazanah's total assets change from 2024 to 2025?",
+  "Compare the TWRR performance between 2024 and 2025.",
+];
+
 /** Render answer text with proper markdown + [1], [2] citation badges. */
 function FormattedAnswer({
   content,
@@ -314,12 +319,25 @@ export default function ChatPage() {
                 Ask questions about Khazanah&apos;s financial performance,
                 portfolio, ESG initiatives, and more.
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto">
+              <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wide mb-2">Search</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto mb-6">
                 {SUGGESTED_QUESTIONS.map((q, i) => (
                   <button
                     key={i}
                     onClick={() => sendQuery(q)}
                     className="text-left px-4 py-3 rounded-xl border border-zinc-200 bg-white text-sm text-zinc-700 hover:border-blue-300 hover:bg-blue-50 transition-colors dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-blue-600 dark:hover:bg-blue-950/20"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wide mb-2">Compare</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto">
+                {COMPARE_QUESTIONS.map((q, i) => (
+                  <button
+                    key={i}
+                    onClick={() => sendQuery(q)}
+                    className="text-left px-4 py-3 rounded-xl border border-green-200 bg-white text-sm text-zinc-700 hover:border-green-400 hover:bg-green-50 transition-colors dark:border-green-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-green-600 dark:hover:bg-green-950/20"
                   >
                     {q}
                   </button>

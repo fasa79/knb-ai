@@ -17,6 +17,7 @@ from app.core.cache import get_semantic_cache
 from app.agents.prompts import SUPERVISOR_SYSTEM_PROMPT
 from app.agents.tools.search_tool import SearchTool, SearchResponse
 from app.agents.tools.extraction_tool import get_extraction_tool
+from app.agents.tools.compare_tool import get_compare_tool
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,7 @@ class AgentSupervisor:
         self.cache = get_semantic_cache()
         self.search_tool = SearchTool()
         self.extraction_tool = get_extraction_tool()
+        self.compare_tool = get_compare_tool()
 
     async def process_query(self, query: str, use_cache: bool = True, model: str | None = None) -> dict[str, Any]:
         """Process a user query end-to-end.
@@ -84,7 +86,7 @@ class AgentSupervisor:
             result["intent"] = "extract"
             result["extraction_data"] = ext_result.get("data")
         elif intent == "compare":
-            response = await self.search_tool.search(query, model=model)
+            response = await self.compare_tool.compare(query, model=model)
             result = response.to_dict()
             result["intent"] = "compare"
         else:
@@ -127,10 +129,19 @@ class AgentSupervisor:
         """Convert structured extraction data into a chat-friendly response."""
         data = ext_result.get("data")
         if not data:
+            error_detail = ext_result.get("error", "")
+            error_msg = (
+                "I couldn't extract structured data for this request."
+            )
+            if error_detail:
+                error_msg += f"\n\n**Reason:** {error_detail}"
+            error_msg += (
+                "\n\nTry rephrasing, or ask about portfolio companies, financial metrics, "
+                "investment performance, or key highlights. "
+                "You can also use the dedicated **/extract** page for more reliable extraction."
+            )
             return {
-                "answer": "I couldn't extract structured data for this request. "
-                          "Try rephrasing or ask about portfolio companies, financial metrics, "
-                          "investment performance, or key highlights.",
+                "answer": error_msg,
                 "sources": [],
                 "confidence": "none",
                 "confidence_label": "Extraction produced no results",
@@ -180,7 +191,18 @@ class AgentSupervisor:
         }
 
     async def _classify_intent(self, query: str, model: str | None = None) -> str:
-        """Classify query intent using LLM."""
+        """Classify query intent using LLM with keyword shortcut."""
+        # Keyword-based shortcut for obvious extraction requests
+        q = query.lower().strip()
+        extract_patterns = [
+            "list all", "extract all", "show all", "enumerate all",
+            "give me all", "list every", "extract every",
+            "list the", "extract the",
+        ]
+        if any(q.startswith(p) or f" {p} " in f" {q} " for p in extract_patterns):
+            logger.info(f"Keyword shortcut → extract for: {q[:60]}")
+            return "extract"
+
         try:
             intent = await self.llm_client.generate(
                 prompt=query,

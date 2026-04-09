@@ -46,7 +46,11 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://knb-ai.fadhs.com",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -149,6 +153,24 @@ async def list_documents():
     return {"documents": docs}
 
 
+@app.delete(
+    "/api/documents/{filename}",
+    tags=["Documents"],
+    summary="Delete a document",
+    responses={404: {"model": ErrorResponse}},
+)
+async def delete_document(filename: str):
+    """Delete a PDF document from the data directory."""
+    import re
+    if not re.match(r'^[\w\-. ()]+\.pdf$', filename, re.IGNORECASE):
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    file_path = Path(settings.data_dir) / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail=f"File not found: {filename}")
+    file_path.unlink()
+    return {"deleted": filename}
+
+
 # ── Ingestion Pipeline ────────────────────────────────────────────
 
 
@@ -159,14 +181,15 @@ async def list_documents():
     summary="Run ingestion pipeline",
     responses={500: {"model": ErrorResponse}},
 )
-async def ingest_documents(clear_existing: bool = True):
+async def ingest_documents(clear_existing: bool = True, use_vision: bool = False):
     """Run the full ingestion pipeline: parse → chunk → embed → store.
 
     - **clear_existing=true**: Wipe vector store and re-index all PDFs (default).
     - **clear_existing=false**: Append new chunks (upsert) alongside existing ones.
+    - **use_vision=true**: Use Gemini Vision to analyze chart/graph images (slower, uses more API quota).
     """
     try:
-        pipeline = IngestionPipeline()
+        pipeline = IngestionPipeline(use_vision=use_vision)
         result = pipeline.run(clear_existing=clear_existing)
         return result.summary
     except Exception as e:

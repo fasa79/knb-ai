@@ -1,0 +1,207 @@
+{
+  "timestamp": "20260409_223226",
+  "num_samples": 15,
+  "scores": {
+    "faithfulness": 0.7436,
+    "answer_relevancy": 0.617,
+    "context_precision": 1.0,
+    "context_recall": 1.0
+  },
+  "predictions": [
+    {
+      "question": "What was Khazanah's TWRR for 2025?",
+      "answer": "I couldn't find specific information about the Time-Weighted Rate of Return (TWRR) for 2025 in the provided documents.\n\nThe documents report that Khazanah achieved a 5.2% return for the Financial Year 2025 [3], [5], but they do not explicitly label this figure as the TWRR.",
+      "contexts": [
+        "portfolio\nRAV1\n6-Year\nRolling\nRAV\nTWRR\n2024\n2023\n2022\n2021\n2020\n2019\nRole of Asset Class\nPublic Markets:\nMalaysia\n57.5%\n6.5%\n34.3%\n4.5%\n-4.2%\n14.0%\n-7.4%\n3.2%\nExposure to domestic\n& global growth &\nliquidity\nPublic Markets:\nGlobal\n17.4%\n9.8%\n10.9%\n15.9%\n-16.3%\n1.6%\n26.2%\n27.5%\nPrivate Markets\n16.5 %",
+        "| % of\nportfolio\nRAV1 | 6-Year\nRolling\nRAV\nTWRR |\n| --- | --- |\n| 57.5% | 6.5% |\n| 17.4% | 9.8% |\n| 16.5 % | 3.7% |\n| 8.6% | 8.1% |",
+        "KUALA LUMPUR, 10 February 2026 — Khazanah Nasional Berhad (“Khazanah”) today\nreleased the Khazanah Annual Review 2026 (“KAR 2026”), reporting resilient performance for\nthe year ended 31 December 2025 despite heightened geopolitical and geoeconomic\nuncertainties. Khazanah ended the year with net asse",
+        "FOR IMMEDIATE RELEASE\n\nKHAZANAH DEMONSTRATES RESILIENCE IN 2025 AMIDST GLOBAL VOLATILITY\n7-year rolling return of 6.1% signalling long-term stewardship\nand delivery of key national economic priorities",
+        "KHAZANAH ANNUAL REVIEW 2026\nKhazanah’s investment portfolio delivered strong and\nresilient returns at 5.2% in 2025 and 6.1% annually\nsince 2019, in line with our mandate and risk appetite\n¹ Rolling returns since 1 Jan 2019\n² 2025 Returns from Net Asset Value (NAV) of the Investments Portfolio\n³ Net ",
+        "2025.  Aligned with our strategy of Advancing Malaysia, Khazanah has continued to\nconsistently fulfil its duty to grow Malaysia’s long-term wealth through risk-adjusted returns,\ncreating value beyond financial outcomes by building capacity and vibrant communities.\nSupporting the Ekonomi MADANI agend"
+      ],
+      "ground_truth": "Khazanah's investments portfolio TWRR was 5.2% for 2025."
+    },
+    {
+      "question": "What is Khazanah's Realisable Asset Value?",
+      "answer": "As of the end of 2025, Khazanah's Realisable Asset Value (RAV) was RM156 billion [4], [5]. This represents an increase from the RM151 billion recorded in 2024 [4], [5].",
+      "contexts": [
+        "KHAZANAH ANNUAL REVIEW 2026\nIn 2025, Khazanah grew its total assets by RM5b,\nwhile paying out RM2b in dividends\n¹ Total Assets refer to Realisable Asset Value (RAV), which is the estimated value of assets that could be realised\n² Portfolio Growth consists of investment, divestment and net change in ",
+        "1 Total Assets refer to Realisable Asset Value (RAV), which is the estimated value of assets that could be realised. Values are as of year-end\n2 Net Assets refer to Net Asset Value (NAV), which is Total Assets minus Total Liabilities. Values are as of year-end\nOverall Portfolio: Since 2019, net asse",
+        "RM b\nProfit from operations\n7.4\n2.9\n0.7\n1.6\n5.9\n5.1\n5.6\n1.0\n2.0\n2.0\n0.5\n1.0\n1.0\n2.0\n45.8\n43.1\n48.5\n49.1\n50.2\n47.7\n50.7\n3.0x\n2.9x\n2.8x\n2.7x\n2.7x\n3.2x\n3.1x\nDividends\nRAV Cover\nDebt\n2019\n2020\n2021\n2022\n2023\n2024\n2025\nKHAZANAH ANNUAL REVIEW 2026\n¹ Total Assets refer to Realisable Asset Value (RAV), whic",
+        "| KHAZANAH ANNUAL REVIEW 2026 |\n| --- |\n| In 2025, Khazanah grew its total assets by RM5b,\nwhile paying out RM2b in dividends\nTotal Assets¹, 2025\n+RM5b\n+ RM7b -RM2b\nRM156b\nRM151b\n2024 Portfolio² Dividends 2025\ngrowth paid to GoM\n¹ Total Assets refer to Realisable Asset Value (RAV), which is the esti",
+        "Portfolio\ngrowth\nDividends\npaid to GoM\n2025\nRM151b\nRM156b\nTotal Assets1, FY2025\nOverall Portfolio: In FY2025, Khazanah grew its total assets by RM5b, while paying out\nRM2b in dividends\n+ RM7b\n- RM2b\n2\n1 Total Assets refer to Realisable Asset Value (RAV), which is the estimated value of assets that c",
+        "KHAZANAH ANNUAL REVIEW 2026\n¹ Net Assets refer to Net Asset Value (NAV), which is Total Assets minus Total Liabilities\n² Compound Annual Growth Rate computed based on the growth in net asset value, including dividends and net of cash flows\nOverall Portfolio Net Assets¹ (RM b)\n33\n105\n2025\n2004\nRM21.1"
+      ],
+      "ground_truth": "Khazanah's Realisable Asset Value (RAV) was RM156 billion in 2025, up from RM151 billion in 2024."
+    },
+    {
+      "question": "How much has Khazanah paid in cumulative dividends to the government?",
+      "answer": "As of the 2026 Annual Review, Khazanah has paid a cumulative total of RM21.1 billion in dividends to the Government of Malaysia [1], [3], [4].",
+      "contexts": [
+        "Additionally, Khazanah recorded RM5.6 billion profit from operations and returned RM2\nbillion in dividends to the Government of Malaysia, reinforcing its role as a key contributor\nto the economic growth of the country. Since 2004, Khazanah has recorded RM21.1 billion in\ncumulative dividends paid to ",
+        "Khazanah Nasional Berhad ©2025  | 17\nKhazanah remains committed in fulfilling its mandate to deliver sustainable returns to the\nnation and growing Malaysia’s long-term wealth\n33\n104\n2004\n2024\nRM19.1b\nCumulative Dividends\npaid to the Government\nof Malaysia\nRM90.1b\nCumulative Shareholder\nReturn\n1 Comp",
+        "Khazanah Nasional Berhad ©2026  |\n8\n33\n105\n2004\n2025\nRM21.1b\nCumulative Dividends\npaid to the Government\nof Malaysia\nRM93.1b\nCumulative Shareholder\nReturn\n1 Net Assets refer to Net Asset Value (NAV), which is Total Assets minus Total Liabilities\n2 Compound Annual Growth Rate computed based on the gr",
+        "KHAZANAH ANNUAL REVIEW 2026\n¹ Net Assets refer to Net Asset Value (NAV), which is Total Assets minus Total Liabilities\n² Compound Annual Growth Rate computed based on the growth in net asset value, including dividends and net of cash flows\nOverall Portfolio Net Assets¹ (RM b)\n33\n105\n2025\n2004\nRM21.1",
+        "| KHAZANAH ANNUAL REVIEW 2026 |\n| --- |\n| Despite the challenging environment in 2025,\nKhazanah’s overall portfolio remained resilient\nwith net assets at RM105b\nOverall Portfolio Net Assets¹ (RM b)\n105\n33\n2004 2025\nRM21.1b RM93.1b\nCumulative Dividends\nCumulative\npaid to the Government of\nShareholder",
+        "Financials\nNet Assets² (RM b)\n147\n138\n123\n134\n130\n135\n151\n156\n2018\n2019\n2020\n2021\n2022\n2023\n2024\n2025\n92\n92\n79\n86\n81\n85\n104 105\n2018\n2019\n2020\n2021\n2022\n2023\n2024\n2025\n+RM9b\n+RM13b\nSince 2019, net assets have grown by RM13b\nwith RM9.5b dividends paid to Government of\nMalaysia"
+      ],
+      "ground_truth": "Khazanah has paid RM21.1 billion in cumulative dividends to the Government of Malaysia."
+    },
+    {
+      "question": "What was the net assets value of Khazanah's portfolio?",
+      "answer": "As of the end of 2025, the net assets value of Khazanah's overall portfolio was RM105 billion [1], [3], [6].",
+      "contexts": [
+        "KHAZANAH ANNUAL REVIEW 2026\n¹ Net Assets refer to Net Asset Value (NAV), which is Total Assets minus Total Liabilities\n² Compound Annual Growth Rate computed based on the growth in net asset value, including dividends and net of cash flows\nOverall Portfolio Net Assets¹ (RM b)\n33\n105\n2025\n2004\nRM21.1",
+        "1 Total Assets refer to Realisable Asset Value (RAV), which is the estimated value of assets that could be realised. Values are as of year-end\n2 Net Assets refer to Net Asset Value (NAV), which is Total Assets minus Total Liabilities. Values are as of year-end\nOverall Portfolio: Since 2019, net asse",
+        "Khazanah Nasional Berhad ©2026  |\n8\n33\n105\n2004\n2025\nRM21.1b\nCumulative Dividends\npaid to the Government\nof Malaysia\nRM93.1b\nCumulative Shareholder\nReturn\n1 Net Assets refer to Net Asset Value (NAV), which is Total Assets minus Total Liabilities\n2 Compound Annual Growth Rate computed based on the gr",
+        "Portfolio\ngrowth\nDividends\npaid to GoM\n2025\nRM151b\nRM156b\nTotal Assets1, FY2025\nOverall Portfolio: In FY2025, Khazanah grew its total assets by RM5b, while paying out\nRM2b in dividends\n+ RM7b\n- RM2b\n2\n1 Total Assets refer to Realisable Asset Value (RAV), which is the estimated value of assets that c",
+        "Performance:\n6.1%\n7-Year Returns1\n5.2%\n2025 Returns2\n1 Rolling returns since 1 Jan 2019\n2 2025 Returns from Net Asset Value (NAV) of the Investments Portfolio\n3 Net Assets refer to Net Asset Value (NAV), which is Total Assets minus Total Liabilities. Values are as of year-end\n81\n85\n73\n78\n73\n76\n93\n95",
+        "| KHAZANAH ANNUAL REVIEW 2026 |\n| --- |\n| Despite the challenging environment in 2025,\nKhazanah’s overall portfolio remained resilient\nwith net assets at RM105b\nOverall Portfolio Net Assets¹ (RM b)\n105\n33\n2004 2025\nRM21.1b RM93.1b\nCumulative Dividends\nCumulative\npaid to the Government of\nShareholder"
+      ],
+      "ground_truth": "Khazanah's overall portfolio net assets were RM105 billion."
+    },
+    {
+      "question": "What was the 7-year rolling return for Khazanah?",
+      "answer": "The 7-year rolling annualised return for Khazanah is 6.1% [1], [2], [3]. This figure represents rolling returns since 1 January 2019 [4], [5].",
+      "contexts": [
+        "KUALA LUMPUR, 10 February 2026 — Khazanah Nasional Berhad (“Khazanah”) today\nreleased the Khazanah Annual Review 2026 (“KAR 2026”), reporting resilient performance for\nthe year ended 31 December 2025 despite heightened geopolitical and geoeconomic\nuncertainties. Khazanah ended the year with net asse",
+        "FOR IMMEDIATE RELEASE\n\nKHAZANAH DEMONSTRATES RESILIENCE IN 2025 AMIDST GLOBAL VOLATILITY\n7-year rolling return of 6.1% signalling long-term stewardship\nand delivery of key national economic priorities",
+        "Key highlights:\n•\nResilient financial performance\no\n7-year rolling return of 6.1% with a solid 5.2% return for 2025, increasing wealth with\nnet assets and total assets increased in tandem to RM105 billion and RM156 billion\nrespectively, with RM5.6 billion profit from operations.\n•\nDisciplined execut",
+        "KHAZANAH ANNUAL REVIEW 2026\nKhazanah’s investment portfolio delivered strong and\nresilient returns at 5.2% in 2025 and 6.1% annually\nsince 2019, in line with our mandate and risk appetite\n¹ Rolling returns since 1 Jan 2019\n² 2025 Returns from Net Asset Value (NAV) of the Investments Portfolio\n³ Net ",
+        "Performance:\n6.1%\n7-Year Returns1\n5.2%\n2025 Returns2\n1 Rolling returns since 1 Jan 2019\n2 2025 Returns from Net Asset Value (NAV) of the Investments Portfolio\n3 Net Assets refer to Net Asset Value (NAV), which is Total Assets minus Total Liabilities. Values are as of year-end\n81\n85\n73\n78\n73\n76\n93\n95",
+        "| % of\nportfolio\nRAV1 | 6-Year\nRolling\nRAV\nTWRR |\n| --- | --- |\n| 57.5% | 6.5% |\n| 17.4% | 9.8% |\n| 16.5 % | 3.7% |\n| 8.6% | 8.1% |"
+      ],
+      "ground_truth": "Khazanah's 7-year rolling return (since 1 Jan 2019) was 6.1% annually."
+    },
+    {
+      "question": "What is Khazanah's portfolio allocation for Public Markets Malaysia?",
+      "answer": "Based on the provided Annual Review documents, Khazanah's portfolio allocation for Public Markets: Malaysia is as follows:\n\n*   **2025:** 50.7% of the portfolio [2], [3].\n*   **2024:** 57.5% of the portfolio [1].",
+      "contexts": [
+        "portfolio\nRAV1\n6-Year\nRolling\nRAV\nTWRR\n2024\n2023\n2022\n2021\n2020\n2019\nRole of Asset Class\nPublic Markets:\nMalaysia\n57.5%\n6.5%\n34.3%\n4.5%\n-4.2%\n14.0%\n-7.4%\n3.2%\nExposure to domestic\n& global growth &\nliquidity\nPublic Markets:\nGlobal\n17.4%\n9.8%\n10.9%\n15.9%\n-16.3%\n1.6%\n26.2%\n27.5%\nPrivate Markets\n16.5 %",
+        "| Investments\nPortfolio by\nAsset Class | % of\nportfolio1 | 7-Year\nRolling | 20252 | 2024 2023 2022 2021 2020 2019 | Role of Asset Class |\n| --- | --- | --- | --- | --- | --- |\n| Public Markets:\nMalaysia | 50.7% | 6.6% | 6.7% | 34.3% 4.5% -4.2% 14.0% -7.4% 3.2% | Exposure to\ndomestic & global\ngrowth ",
+        "portfolio1\n7-Year\nRolling\n20252\n2024\n2023\n2022\n2021\n2020\n2019\nRole of Asset Class\nPublic Markets:\nMalaysia\n50.7%\n6.6%\n6.7%\n34.3%\n4.5%\n-4.2%\n14.0%\n-7.4%\n3.2%\nExposure to\ndomestic & global\ngrowth & liquidity\nPublic Markets:\nGlobal\n19.7%\n10.1%\n11.7%\n10.9%\n15.9%\n-16.3%\n1.6%\n26.2%\n27.5%\nPrivate Markets\n2",
+        "Investments Portfolio: The strong performance in 2025 reflects our disciplined portfolio\nmanagement, demonstrating resilience amid Ringgit strengthening\n1 Calculated as a proportion of Total Assets\n22025 returns in USD: Public Markets Global 23.6% USD, Private Markets 6.8% USD, Real Assets 10.3% USD",
+        "Khazanah Nasional Berhad ©2026  | 12\n\nInvestments\n\nPortfolio by\nAsset Class\n% of",
+        "Khazanah Nasional Berhad ©2026  |\n2\nKhazanah continues to drive the nation’s prosperity by investing to deliver sustainable,\nlong-term value for Malaysians\nInvesting to deliver sustainable value for Malaysians\nin Malaysia’s capital\nmarkets, spurring\neconomic growth\nto grow the portfolio while\nfacili"
+      ],
+      "ground_truth": "Public Markets Malaysia represents approximately 50.7% of Khazanah's portfolio."
+    },
+    {
+      "question": "What is the GEAR-uP programme?",
+      "answer": "Based on the provided documents, the GEAR-uP programme is an initiative that has unlocked RM22 billion in investments [1]. \n\nI couldn't find further specific details regarding the structure or objectives of the GEAR-uP programme in the provided Annual Review documents.",
+      "contexts": [
+        "Khazanah Nasional Berhad ©2026  |\n3\nBusiness Today,\n30 Jun 2025\nGEAR-uP\nUnlocks RM22b\nin Investments\nKhazanah unit\nappoints five VCs\nto deploy RM200m\ninto startups\nNew Straits Times,\n24 Jun 2025\nKhazanah to Boost",
+        "Khazanah’s K-Youth programme trained 9,934 youths (including 76% from B40 families\nand 79% Bumiputeras) in collaboration with 18 programme partners. Since its inception in\n2023, more than 34,000 youths have been trained in key growth areas such as digital and\ntechnological innovation, semiconductors",
+        "Investments, Private Credit & Private Equity strategies\n>10 startups supported to-date and\n>RM30m capital crowded-in for EMP fund managers\n>60 startups\nsupported through\nthe Future Malaysia\nProgramme\nEMP:\nRMI:",
+        "Investment into a US-based global\nedge artificial intelligence leader\n3 Malaysian semiconductor companies supported\nthrough catalytic fund partnership\nCapacity Development Initiatives\nDana Impak drives firm transformation across their lifecycles and ecosystem\nbuilding, playing a catalytic developmen",
+        "Catalyse VC Ecosystem\nStrengthen & modernise grid\ninfrastructure\nStrengthen long-haul\nconnection to boost Malaysia’s\nconnectivity\nPrivitisation for long-term\nsustainable growth &\noperational excellence\nRestore and sustain\nnational heritage\nAccelerate Renewable\nEnergy Capacity\nPrioritise recycling\n& ",
+        "Khazanah Nasional Berhad ©2025  |\n9\nStrengthen & modernise grid\ninfrastructure\nPrivatisation for long-term sustainable\ngrowth & operational excellence\nRestore & sustain national heritage\nDigital Tools\nDigitalised Economy\nFoundational Enablers\nCatalyse VC\nEcosystem\nLevel-up\nMid-Tier Companies\nStrengt"
+      ],
+      "ground_truth": "GEAR-uP is Khazanah's programme that unlocks RM22 billion in investments."
+    },
+    {
+      "question": "How many startups has Khazanah's Future Malaysia Programme supported?",
+      "answer": "Based on the 2026 Annual Review documents, the Future Malaysia Programme has supported more than 60 startups [1], [2].",
+      "contexts": [
+        "Investments, Private Credit & Private Equity strategies\n>10 startups supported to-date and\n>RM30m capital crowded-in for EMP fund managers\n>60 startups\nsupported through\nthe Future Malaysia\nProgramme\nEMP:\nRMI:",
+        "Investment into a US-based global edge\nartificial intelligence leader\nEMP\nRMI\nPrivate Credit\nPrivate Equity\nCapacity Development Initiatives\n>10 startups supported to-date and\n>RM30m capital crowded-in for EMP fund managers\nGrowth Capital Investments via Direct/\nCo-Investments, Private Credit &\nPriv",
+        "Under the Transforming Firms pillar, Dana Impak continued to unlock new growth frontiers\nand deepen Malaysia’s economic complexity. Through Jelawang Capital, Malaysia’s National\nFund of Funds, its first five fund managers have backed more than 10 startups and catalysed\nover RM30 million in crowded-i",
+        "Khazanah Nasional Berhad ©2026  | 15\nNote: Investee companies highlighted are non-exhaustive\n5 fund managers supported to-date via\nEmerging Fund Managers’ Programme (EMP)\n& Regional Fund Managers’ Initiative (RMI)\n11 MTCs supported\n32 MTCs enabled\nOpened a new manufacturing and research\n& developmen",
+        "Catalyse Malaysia’s Venture Capital\nEcosystem via the National Fund-of-Funds\nStrengthen Malaysia’s Semiconductor & Advanced Manufacturing\nin alignment with National Semiconductor Strategy\nLevel up Malaysian\nMid-Tier Companies (MTCs)\nNote: Investee companies highlighted are non-exhaustive\nKHAZANAH AN",
+        "RM122.9m disbursed to support\n386 projects across art & public\nspaces, community development,\neducation, environment and\nknowledge\nVibrant green space in central KL,\nwelcoming over 1.7m visitors\nsince 2018, and bringing\ncommunities together with nature,\nwellness and public events\nTrained 9,934 youth"
+      ],
+      "ground_truth": "The Future Malaysia Programme has supported more than 60 startups."
+    },
+    {
+      "question": "What is the living wage policy deadline?",
+      "answer": "I couldn't find specific information about a deadline for the living wage policy in the Annual Review documents provided. The documents only note that Government-Linked Investment Companies (GLICs) implemented a living wage policy with a benchmark set at about RM3,100 [1, 2].",
+      "contexts": [
+        "| 30 Jun 2025\nBernama, 11 Oct 2025 24 Jun 2025 |  |\n| --- | --- |\n| Raise the Floor\nGLICs implement living\nYayasan Hasanah\nwage policy to raise\nawards special grant to\nemployees’ standard of\n28 civil society Program K-Youth\nliving, with benchmark\norganisations lahirkan belia\nset at about RM3,100\nber",
+        "Investment, Foster\nCollaboration in\nPriority Areas like\nSemiconductors\nWe remain committed in advancing the Ekonomi MADANI vision of Raising the Floor and\nCeiling to uplift Malaysia’s economic complexity and shared prosperity\nBernama, 11 Oct 2025\nGLICs implement living\nwage policy to raise\nemployees",
+        "Investments of\nRM282.5b,\n+13.2% YoY\nfor 9M of 2025\nTourism Arrivals\n+12% YoY for\n11M of 2025\nKLCI +7% YoY\nRinggit +10% YoY\nin 2025\nIn 2025, Malaysia saw policy certainty and active global engagement underpin strong\ngrowth and market resilience\nJan 25\nJohor-SG\nSEZ\nAgreement\nFeb 25\nMinimum\nWage of\nRM ",
+        "|  | Malaysia 2025: Year in Review |  |  |  |  |\n| --- | --- | --- | --- | --- | --- |\n| Policy\nChanges &\nCommitment |  |  |  |  |  |",
+        "Khazanah Nasional Berhad ©2025  | 16\nSpearheaded policy\nrecommendations through 14\npublished papers covering topics\nsuch as climate change,\ninequality and financial\necosystems\nLed policy recommendations in 15 papers on\nclimate change, inequality & finance\nVibrant green space in the heart of KL,\nwelc",
+        "Khazanah Nasional Berhad ©2026  | 19\nSpearheaded policy\nrecommendations through 14\npublished papers covering topics\nsuch as climate change,  inequality\nand financial ecosystems\nPublished over 90 research publications,\nshaping policy recommendations\nVibrant green space in central KL, welcoming over\n1"
+      ],
+      "ground_truth": "GLICs are required to implement the living wage policy by 30 June 2025."
+    },
+    {
+      "question": "Did Khazanah increase its stake in EDOTCO?",
+      "answer": "Yes, Khazanah increased its stake in EDOTCO from 10.6% to 31.7% in March 2025 to enhance domestic digital infrastructure for Malaysia’s economic growth [1], [2].",
+      "contexts": [
+        "KHAZANAH ANNUAL REVIEW 2026\nWe have executed several notable transactions to\noptimise capital for long-term value creation\nPrivatisation of MAHB\nCompleted February 2025\nWith a deal value of RM18.4b, privatisation\nintends to drive operational excellence and\nelevate Malaysia’s airports to world-class\n",
+        "EDOTCO Stake Increase\nCompleted Mar 2025\nIncreased our stake in EDOTCO\nfrom 10.6% to 31.7% to\nenhance the domestic digital\ninfrastructure for Malaysia’s\neconomic growth\nXL-Smartfren Merger\nCompleted Apr 2025\nCompleted at a deal value of\n~USD6.5b pre-synergy, with the\nintention to strengthen Axiata’s",
+        "About Khazanah Nasional Berhad\nKhazanah Nasional Berhad (“Khazanah”) is the sovereign wealth fund of Malaysia entrusted to deliver\nsustainable value for Malaysians. In line with its long-term strategy of Advancing Malaysia, Khazanah\naims to deliver its purpose by investing in catalytic sectors, crea",
+        "Khazanah Nasional Berhad ©2025  | 11\nEnergy Transition:\nKhazanah pushes boundaries in driving energy transition and\ndecarbonisation efforts for a sustainable future\nation that  reates\nnergy\nransition\nonnectivity\nDigitalisation\nommunity Development\n1Corporate Renewable Energy Supply Scheme (CRESS)\nAc",
+        "END\n\nFor further information, please visit www.khazanah.com.my. For media related matters, kindly\ncontact Regina Lee at Tel: +603 2034 0492, or email regina.lee@khazanah.com.my",
+        "2025.  Aligned with our strategy of Advancing Malaysia, Khazanah has continued to\nconsistently fulfil its duty to grow Malaysia’s long-term wealth through risk-adjusted returns,\ncreating value beyond financial outcomes by building capacity and vibrant communities.\nSupporting the Ekonomi MADANI agend"
+      ],
+      "ground_truth": "Yes, Khazanah increased its stake in EDOTCO from 10.6% to 31.7%."
+    },
+    {
+      "question": "Who is the Managing Director of Khazanah?",
+      "answer": "The Managing Director of Khazanah Nasional Berhad is Dato’ Amirul Feisal Wan Zahir [1].",
+      "contexts": [
+        "Dato’ Amirul Feisal Wan Zahir, Managing Director of Khazanah Nasional Berhad, said,\n“We are pleased to note that our disciplined approach and long-term investment horizon\nenabled us to deliver a resilient performance despite a more volatile global environment in",
+        "About Khazanah Nasional Berhad\nKhazanah Nasional Berhad (“Khazanah”) is the sovereign wealth fund of Malaysia entrusted to deliver\nsustainable value for Malaysians. In line with its long-term strategy of Advancing Malaysia, Khazanah\naims to deliver its purpose by investing in catalytic sectors, crea",
+        "END\n\nFor further information, please visit www.khazanah.com.my. For media related matters, kindly\ncontact Regina Lee at Tel: +603 2034 0492, or email regina.lee@khazanah.com.my",
+        "© All Rights Reserved.\nThis material is confidential and proprietary to\nKhazanah Nasional Berhad. No part of this material\nshould be reproduced or published in any form by any means,\nnor should the material be disclosed to third parties without the\nconsent of Khazanah Nasional Berhad.\nwww.khazanah.c",
+        "2025.  Aligned with our strategy of Advancing Malaysia, Khazanah has continued to\nconsistently fulfil its duty to grow Malaysia’s long-term wealth through risk-adjusted returns,\ncreating value beyond financial outcomes by building capacity and vibrant communities.\nSupporting the Ekonomi MADANI agend",
+        "© All Rights Reserved.\nThis material is confidential and proprietary to\nKhazanah Nasional Berhad. No part of this material\nshould be reproduced or published in any form by any means,\nnor should the material be disclosed to third parties without the\nconsent of Khazanah Nasional Berhad.\nwww.khazanah.c"
+      ],
+      "ground_truth": "Dato' Amirul Feisal Wan Zahir is the Managing Director of Khazanah Nasional Berhad."
+    },
+    {
+      "question": "What is the weather in Kuala Lumpur today?",
+      "answer": "I couldn't find specific information about the weather in Kuala Lumpur in the Annual Review documents provided.",
+      "contexts": [
+        "2026. Since reopening in Dec 2025, the two sites have welcomed more than 14,500 visitors,\nreflecting strong public engagement and renewed interest in Malaysia’s national history and\nheritage. The restored and rejuvenated iconic buildings will further strengthen Kuala Lumpur\nas a dynamic economic and",
+        "3\n\nSecond, Dana Warisan, an initiative under Warisan Kuala Lumpur (“Warisan KL”), achieved\nkey conservation milestones including the reopening of Seri Negara and the restoration of\nBlock 1 of the Bangunan Sultan Abdul Samad Complex in time for Visit Malaysia Year",
+        "Advancing Malaysia Through Strategic Execution\n\nUnder our Connectivity pillar within our Malaysia Investment Strategy, Khazanah progressed\ntwo key strategic initiatives. First, the completion of the privatisation of Malaysia Airport\nHoldings Berhad (“MAHB”), with transformation efforts underway to s",
+        "KUALA LUMPUR, 10 February 2026 — Khazanah Nasional Berhad (“Khazanah”) today\nreleased the Khazanah Annual Review 2026 (“KAR 2026”), reporting resilient performance for\nthe year ended 31 December 2025 despite heightened geopolitical and geoeconomic\nuncertainties. Khazanah ended the year with net asse",
+        "FBM KLCI\n+17.7% TSR\nend-24: 1,642\nRinggit\n+2.7% YoY vs. USD\nfrom 4.59 to 4.47\nIn 2024, Malaysia’s resilient economy marked by strong GDP and FDI growth drove\ngains in the FBM KLCI & strengthened the Ringgit despite global market volatility",
+        "Investments of\nRM282.5b,\n+13.2% YoY\nfor 9M of 2025\nTourism Arrivals\n+12% YoY for\n11M of 2025\nKLCI +7% YoY\nRinggit +10% YoY\nin 2025\nIn 2025, Malaysia saw policy certainty and active global engagement underpin strong\ngrowth and market resilience\nJan 25\nJohor-SG\nSEZ\nAgreement\nFeb 25\nMinimum\nWage of\nRM "
+      ],
+      "ground_truth": "This question is not related to Khazanah's Annual Review."
+    },
+    {
+      "question": "How did Khazanah's total assets change from 2024 to 2025?",
+      "answer": "In 2025, Khazanah's total assets (Realisable Asset Value) grew by RM5 billion [1], [2], [3]. \n\nThe total assets increased from RM151 billion in 2024 to RM156 billion in 2025 [2], [3], [4]. This growth was driven by a portfolio growth of +RM7 billion, offset by RM2 billion in dividends paid to the Government of Malaysia [2], [3].",
+      "contexts": [
+        "KHAZANAH ANNUAL REVIEW 2026\nIn 2025, Khazanah grew its total assets by RM5b,\nwhile paying out RM2b in dividends\n¹ Total Assets refer to Realisable Asset Value (RAV), which is the estimated value of assets that could be realised\n² Portfolio Growth consists of investment, divestment and net change in ",
+        "| KHAZANAH ANNUAL REVIEW 2026 |\n| --- |\n| In 2025, Khazanah grew its total assets by RM5b,\nwhile paying out RM2b in dividends\nTotal Assets¹, 2025\n+RM5b\n+ RM7b -RM2b\nRM156b\nRM151b\n2024 Portfolio² Dividends 2025\ngrowth paid to GoM\n¹ Total Assets refer to Realisable Asset Value (RAV), which is the esti",
+        "Portfolio\ngrowth\nDividends\npaid to GoM\n2025\nRM151b\nRM156b\nTotal Assets1, FY2025\nOverall Portfolio: In FY2025, Khazanah grew its total assets by RM5b, while paying out\nRM2b in dividends\n+ RM7b\n- RM2b\n2\n1 Total Assets refer to Realisable Asset Value (RAV), which is the estimated value of assets that c",
+        "Khazanah Nasional Berhad ©2026  | 10\n147\n138\n123\n134\n130\n135\n151\n156\n2018\n2019\n2020\n2021\n2022\n2023\n2024\n2025\nTotal Assets1 (RM b)\nNet Assets2 (RM b)\n+RM9b\n92\n92\n79\n86\n81\n85\n104\n105\n2018\n2019\n2020\n2021\n2022\n2023\n2024\n2025\n+RM13b",
+        "RM b\nProfit from operations\n7.4\n2.9\n0.7\n1.6\n5.9\n5.1\n5.6\n1.0\n2.0\n2.0\n0.5\n1.0\n1.0\n2.0\n45.8\n43.1\n48.5\n49.1\n50.2\n47.7\n50.7\n3.0x\n2.9x\n2.8x\n2.7x\n2.7x\n3.2x\n3.1x\nDividends\nRAV Cover\nDebt\n2019\n2020\n2021\n2022\n2023\n2024\n2025\nKHAZANAH ANNUAL REVIEW 2026\n¹ Total Assets refer to Realisable Asset Value (RAV), whic",
+        "Khazanah Nasional Berhad ©2025  |\n3\n1RAV includes Cash and Cash Equivalents, Other Current Assets, Other Current Liabilities and Bond Assets\nKhazanah’s investments have grown significantly in 2024, with NAV increasing by\nRM18.8b. The Investments Portfolio is the mainstay of financial returns for Kha"
+      ],
+      "ground_truth": "Khazanah's total assets (RAV) increased from RM151 billion in 2024 to RM156 billion in 2025."
+    },
+    {
+      "question": "What is Khazanah doing in the semiconductor sector?",
+      "answer": "Based on the provided Annual Review documents, Khazanah’s initiatives in the semiconductor sector include the following:\n\n*   **Strategic Alignment:** Khazanah is strengthening Malaysia’s semiconductor and advanced manufacturing sector in alignment with the National Semiconductor Strategy [1], [3].\n*   **Catalytic Partnerships:** As of 2026, Khazanah has supported three Malaysian semiconductor companies through catalytic fund partnerships [1], [3].\n*   **Infrastructure Development:** Khazanah facilitated the opening of a new manufacturing and research & development facility in Penang, which doubled manufacturing capacity and created 800 high-tech jobs [1].\n*   **Strategic Investments:** In 2025, Khazanah invested in Syntiant Corp., an edge-AI company, to boost research and development in semiconductors, AI, and microphone technologies [2]. Additionally, in 2026, Khazanah reported an investment into a US-based global edge artificial intelligence leader [3].\n*   **Programmatic Approach:** Khazanah plays a key role in the semiconductor industry through a programmatic approach as part of its efforts to transform firms [2].",
+      "contexts": [
+        "Catalyse Malaysia’s Venture Capital\nEcosystem via the National Fund-of-Funds\nStrengthen Malaysia’s Semiconductor & Advanced Manufacturing\nin alignment with National Semiconductor Strategy\nLevel up Malaysian\nMid-Tier Companies (MTCs)\nNote: Investee companies highlighted are non-exhaustive\nKHAZANAH AN",
+        "Khazanah Nasional Berhad ©2025  | 10\nIncrease Malaysia’s competitiveness and resilience while delivering socio-economic impact to\nthe rakyat\nTransforming Firms:\nPlay a key role across firms’ life cycle as well as the\nthe semiconductor industry via a programmatic approach\nEstablished Jelawang Capital",
+        "Investment into a US-based global\nedge artificial intelligence leader\n3 Malaysian semiconductor companies supported\nthrough catalytic fund partnership\nCapacity Development Initiatives\nDana Impak drives firm transformation across their lifecycles and ecosystem\nbuilding, playing a catalytic developmen",
+        "About Khazanah Nasional Berhad\nKhazanah Nasional Berhad (“Khazanah”) is the sovereign wealth fund of Malaysia entrusted to deliver\nsustainable value for Malaysians. In line with its long-term strategy of Advancing Malaysia, Khazanah\naims to deliver its purpose by investing in catalytic sectors, crea",
+        "Khazanah Nasional Berhad ©2026  | 14\nKhazanah is committed to nation-building guided by our Malaysia Investment Strategy,\nsupporting Malaysia's strong economy\nStrengthen & Modernise Grid\nInfrastructure\nPrivatisation for Long-Term Sustainable\nGrowth & Operational Excellence\nRestore & Sustain National",
+        "Catalyse VC Ecosystem\nStrengthen & modernise grid\ninfrastructure\nStrengthen long-haul\nconnection to boost Malaysia’s\nconnectivity\nPrivitisation for long-term\nsustainable growth &\noperational excellence\nRestore and sustain\nnational heritage\nAccelerate Renewable\nEnergy Capacity\nPrioritise recycling\n& "
+      ],
+      "ground_truth": "Khazanah is supporting Malaysia's semiconductor ecosystem, having supported 3 Malaysian semiconductor companies through catalytic fund partnerships, aligned with the National Semiconductor Strategy."
+    },
+    {
+      "question": "How many programme partners does K-Youth have?",
+      "answer": "In 2026, the K-Youth programme collaborated with 18 programme partners [1], [2], [3].",
+      "contexts": [
+        "Khazanah’s K-Youth programme trained 9,934 youths (including 76% from B40 families\nand 79% Bumiputeras) in collaboration with 18 programme partners. Since its inception in\n2023, more than 34,000 youths have been trained in key growth areas such as digital and\ntechnological innovation, semiconductors",
+        "RM122.9m disbursed to support\n386 projects across art & public\nspaces, community development,\neducation, environment and\nknowledge\nVibrant green space in central KL,\nwelcoming over 1.7m visitors\nsince 2018, and bringing\ncommunities together with nature,\nwellness and public events\nTrained 9,934 youth",
+        "Khazanah Nasional Berhad ©2026  | 19\nSpearheaded policy\nrecommendations through 14\npublished papers covering topics\nsuch as climate change,  inequality\nand financial ecosystems\nPublished over 90 research publications,\nshaping policy recommendations\nVibrant green space in central KL, welcoming over\n1",
+        "Khazanah Nasional Berhad ©2025  | 16\nSpearheaded policy\nrecommendations through 14\npublished papers covering topics\nsuch as climate change,\ninequality and financial\necosystems\nLed policy recommendations in 15 papers on\nclimate change, inequality & finance\nVibrant green space in the heart of KL,\nwelc",
+        "| 30 Jun 2025\nBernama, 11 Oct 2025 24 Jun 2025 |  |\n| --- | --- |\n| Raise the Floor\nGLICs implement living\nYayasan Hasanah\nwage policy to raise\nawards special grant to\nemployees’ standard of\n28 civil society Program K-Youth\nliving, with benchmark\norganisations lahirkan belia\nset at about RM3,100\nber",
+        "Key highlights:\n•\nResilient financial performance\no\n7-year rolling return of 6.1% with a solid 5.2% return for 2025, increasing wealth with\nnet assets and total assets increased in tandem to RM105 billion and RM156 billion\nrespectively, with RM5.6 billion profit from operations.\n•\nDisciplined execut"
+      ],
+      "ground_truth": "K-Youth has 18 programme partners."
+    }
+  ]
+}

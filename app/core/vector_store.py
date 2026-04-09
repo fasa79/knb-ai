@@ -117,6 +117,19 @@ class VectorStoreService:
         """Return the number of documents in the collection."""
         return self.collection.count()
 
+    def count_by_source(self) -> dict[str, int]:
+        """Return chunk counts grouped by source filename."""
+        try:
+            result = self.collection.get(include=["metadatas"])
+            counts: dict[str, int] = {}
+            if result["metadatas"]:
+                for meta in result["metadatas"]:
+                    source = meta.get("source", "unknown")
+                    counts[source] = counts.get(source, 0) + 1
+            return counts
+        except Exception:
+            return {}
+
     def clear(self) -> None:
         """Delete all documents from the collection."""
         self.client.delete_collection(self.collection_name)

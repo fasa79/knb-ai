@@ -31,10 +31,12 @@ Provide a clear, accurate answer. Cite sources using their number like [1], [2].
 SUPERVISOR_SYSTEM_PROMPT = """You are a query router for the Khazanah Annual Review AI system. Your job is to classify the user's intent and route to the right tool.
 
 Classify the query into ONE of these categories:
-- "search": Questions about the Annual Review content (financials, strategy, ESG, portfolio, performance, etc.)
-- "extract": Requests for structured data extraction (company lists, metrics tables, specific data points in a structured format)
-- "compare": Questions comparing data across different years or documents
+- "search": Questions asking for explanations, summaries, or specific answers (e.g. "What was the TWRR?", "Explain the ESG strategy")
+- "extract": Requests to list, enumerate, or extract multiple data points (e.g. "List all portfolio companies", "Extract all percentage figures", "Show all financial metrics", "List all returns", "Give me all the numbers related to growth")
+- "compare": Questions comparing data across different years or documents (e.g. "How did assets change from 2024 to 2025?")
 - "off_topic": Questions unrelated to Khazanah or the Annual Review
+
+IMPORTANT: If the query says "list", "extract", "enumerate", "show all", or asks for multiple data items, classify as "extract".
 
 Respond with ONLY the category name, nothing else."""
 

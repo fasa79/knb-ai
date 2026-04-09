@@ -31,9 +31,16 @@ interface IngestResult {
   }[];
 }
 
+interface FileIngestStatus {
+  filename: string;
+  chunks: number;
+  ingested: boolean;
+}
+
 interface IngestStatus {
   chunks_stored: number;
   pdf_files?: string[];
+  file_status?: FileIngestStatus[];
 }
 
 export default function Home() {
@@ -45,6 +52,25 @@ export default function Home() {
   const [ingestStatus, setIngestStatus] = useState<IngestStatus | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [clearExisting, setClearExisting] = useState(true);
+  const [useVision, setUseVision] = useState(false);
+
+  const deleteDocument = async (filename: string) => {
+    if (!confirm(`Delete ${filename}? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(`${API_URL}/api/documents/${encodeURIComponent(filename)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Delete failed");
+      }
+      await loadDocuments();
+      await loadIngestStatus();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Delete failed");
+    }
+  };
 
   const loadDocuments = useCallback(async () => {
     try {
@@ -81,7 +107,10 @@ export default function Home() {
     setIngestResult(null);
 
     try {
-      const res = await fetch(`${API_URL}/api/ingest?clear_existing=true`, {
+      const params = new URLSearchParams();
+      params.set("clear_existing", String(clearExisting));
+      params.set("use_vision", String(useVision));
+      const res = await fetch(`${API_URL}/api/ingest?${params}`, {
         method: "POST",
       });
 
@@ -317,10 +346,21 @@ export default function Home() {
                     <th className="px-4 py-3 text-right font-medium text-zinc-500 dark:text-zinc-400">
                       Size
                     </th>
+                    <th className="px-4 py-3 text-right font-medium text-zinc-500 dark:text-zinc-400">
+                      Chunks
+                    </th>
+                    <th className="px-4 py-3 text-center font-medium text-zinc-500 dark:text-zinc-400">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 w-10"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {documents.map((doc, i) => (
+                  {documents.map((doc, i) => {
+                    const fileStatus = ingestStatus?.file_status?.find(
+                      (f) => f.filename === doc.filename
+                    );
+                    return (
                     <tr
                       key={i}
                       className="border-b border-zinc-100 last:border-0 dark:border-zinc-800"
@@ -340,8 +380,37 @@ export default function Home() {
                           ? `${(doc.size_kb / 1024).toFixed(1)} MB`
                           : `${doc.size_kb} KB`}
                       </td>
+                      <td className="px-4 py-3 text-right text-zinc-600 dark:text-zinc-400 tabular-nums">
+                        {fileStatus ? fileStatus.chunks : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {fileStatus?.ingested ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Ingested
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                            Pending
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => deleteDocument(doc.filename)}
+                          className="text-zinc-400 hover:text-red-500 transition-colors"
+                          title={`Delete ${doc.filename}`}
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                          </svg>
+                        </button>
+                      </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -350,7 +419,7 @@ export default function Home() {
 
         {/* Ingestion Pipeline */}
         <section className="mt-10">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-start justify-between mb-4">
             <div>
               <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
                 Ingestion Pipeline
@@ -359,12 +428,57 @@ export default function Home() {
                 Parse → Chunk → Embed → Store in vector database
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              {ingestStatus && (
-                <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                  {ingestStatus.chunks_stored} chunks stored
-                </span>
+            <div className="flex flex-col items-end gap-3">
+              <div className="flex items-center gap-4">
+                {/* Toggles */}
+                <label className="flex items-center gap-2 cursor-pointer" title="Clear all existing embeddings before ingesting. Turn off to append new documents to the existing knowledge base.">
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={clearExisting}
+                    onClick={() => setClearExisting(!clearExisting)}
+                    className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
+                      clearExisting ? "bg-blue-600" : "bg-zinc-300 dark:bg-zinc-600"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform ${
+                        clearExisting ? "translate-x-4" : "translate-x-0.5"
+                      }`}
+                    />
+                  </button>
+                  <span className="text-xs text-zinc-600 dark:text-zinc-400 whitespace-nowrap">Clear existing</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer" title="Use Gemini Vision to analyze charts and infographics in PDFs. Slower and uses more API quota.">
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={useVision}
+                    onClick={() => setUseVision(!useVision)}
+                    className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
+                      useVision ? "bg-blue-600" : "bg-zinc-300 dark:bg-zinc-600"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform ${
+                        useVision ? "translate-x-4" : "translate-x-0.5"
+                      }`}
+                    />
+                  </button>
+                  <span className="text-xs text-zinc-600 dark:text-zinc-400 whitespace-nowrap">Vision (charts)</span>
+                </label>
+              </div>
+              {useVision && (
+                <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-300 max-w-sm text-right">
+                  <strong>Heads up:</strong> Vision analyzes each image via Gemini API. With free-tier rate limits (15 RPM), this can take <strong>several minutes</strong> per document and uses significant API quota.
+                </div>
               )}
+              <div className="flex items-center gap-3">
+                {ingestStatus && (
+                  <span className="text-sm text-zinc-500 dark:text-zinc-400">
+                    {ingestStatus.chunks_stored} chunks stored
+                  </span>
+                )}
               <button
                 onClick={runIngestion}
                 disabled={ingesting || documents.length === 0}
@@ -401,6 +515,7 @@ export default function Home() {
                   "Run Ingestion"
                 )}
               </button>
+              </div>
             </div>
           </div>
 

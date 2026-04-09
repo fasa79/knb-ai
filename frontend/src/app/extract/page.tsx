@@ -77,6 +77,11 @@ const EXTRACTION_TYPES = [
   },
 ];
 
+const SUGGESTED_EXTRACTIONS = [
+  { type: "financials", label: "Extract Financial Metrics", description: "RAV, TWRR, assets, dividends" },
+  { type: "custom", query: "Extract all dividend and distribution figures by year", label: "Dividends & Distributions", description: "Shareholder returns by year" },
+];
+
 function DataTable({
   headers,
   rows,
@@ -404,6 +409,28 @@ export default function ExtractPage() {
           ))}
         </div>
 
+        {/* Suggested Extractions */}
+        {!result && !loading && (
+          <div>
+            <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">Suggested</p>
+            <div className="flex flex-wrap gap-2">
+              {SUGGESTED_EXTRACTIONS.map((s, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    setSelectedType(s.type);
+                    if (s.query) setCustomQuery(s.query);
+                  }}
+                  className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-700 dark:text-gray-300 hover:border-blue-300 hover:bg-blue-50 dark:hover:border-blue-600 dark:hover:bg-blue-950/20 transition-colors"
+                >
+                  <span className="font-medium">{s.label}</span>
+                  <span className="text-gray-400 dark:text-gray-500 ml-1.5">— {s.description}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Custom Query Input */}
         {selectedType === "custom" && (
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
@@ -414,7 +441,7 @@ export default function ExtractPage() {
               type="text"
               value={customQuery}
               onChange={(e) => setCustomQuery(e.target.value)}
-              placeholder='e.g. "Extract all ESG initiatives with dates and amounts"'
+              placeholder='e.g. "List all strategic initiatives and their outcomes"'
               className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               onKeyDown={(e) => e.key === "Enter" && runExtraction()}
             />

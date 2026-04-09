@@ -9,7 +9,7 @@ services:
       - .env
     volumes:
       - ./app/data:/app/app/data
-      - chroma_data:/app/chroma_db
+      - ./chroma_db:/app/chroma_db
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
@@ -27,6 +27,3 @@ services:
       backend:
         condition: service_healthy
     restart: unless-stopped
-
-volumes:
-  chroma_data:
