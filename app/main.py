@@ -276,10 +276,13 @@ async def query_documents(request: QueryRequest):
         err_str = str(e).lower()
         if "429" in str(e) or "quota" in err_str or "resource has been exhausted" in err_str:
             model_name = request.model or settings.gemini_model
-            raise HTTPException(
-                status_code=429,
-                detail=f"API quota exhausted for {model_name}. Try selecting a different model from the dropdown (Lite models have higher daily limits).",
-            )
+            if "per_minute" in err_str or "perminute" in err_str:
+                msg = (f"Rate limit hit for {model_name} (too many requests per minute). "
+                       f"Wait a moment and try again, or switch to Gemini 3.1 Flash Lite (15 RPM) from the dropdown.")
+            else:
+                msg = (f"API quota exhausted for {model_name}. "
+                       f"Try selecting a different model from the dropdown — Lite models have higher limits (500 req/day).")
+            raise HTTPException(status_code=429, detail=msg)
         logger.error(f"Query failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Query failed: {str(e)}")
 
@@ -338,9 +341,12 @@ async def extract_data(request: ExtractRequest):
         err_str = str(e).lower()
         if "429" in str(e) or "quota" in err_str or "resource has been exhausted" in err_str:
             model_name = request.model or settings.gemini_model
-            raise HTTPException(
-                status_code=429,
-                detail=f"API quota exhausted for {model_name}. Try selecting a different model from the dropdown (Lite models have higher daily limits).",
-            )
+            if "per_minute" in err_str or "perminute" in err_str:
+                msg = (f"Rate limit hit for {model_name} (too many requests per minute). "
+                       f"Wait a moment and try again, or switch to Gemini 3.1 Flash Lite (15 RPM) from the dropdown.")
+            else:
+                msg = (f"API quota exhausted for {model_name}. "
+                       f"Try selecting a different model from the dropdown — Lite models have higher limits (500 req/day).")
+            raise HTTPException(status_code=429, detail=msg)
         logger.error(f"Extraction failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Extraction failed: {str(e)}")

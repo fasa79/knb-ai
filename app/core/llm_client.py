@@ -20,8 +20,23 @@ from app.config import Settings, get_settings
 logger = logging.getLogger(__name__)
 
 # Retry config for rate-limited APIs
-MAX_RETRIES = 1
-RETRY_BASE_DELAY = 5  # seconds
+MAX_RETRIES = 3
+RETRY_BASE_DELAY = 10  # seconds (fallback if we can't parse the retry delay)
+
+
+def _parse_retry_delay(err_str: str) -> float | None:
+    """Extract retry delay from Google API error message (e.g. 'retry in 59.3s')."""
+    import re
+    match = re.search(r"retry.in\s+([\d.]+)s", err_str.lower())
+    if match:
+        return float(match.group(1))
+    return None
+
+
+def _is_daily_quota(err_str: str) -> bool:
+    """Check if error is a daily quota exhaustion (not retryable) vs per-minute rate limit."""
+    lower = err_str.lower()
+    return "per_day" in lower or "perday" in lower or "daily" in lower
 
 
 class BaseLLMClient(ABC):
@@ -51,10 +66,12 @@ class BaseLLMClient(ABC):
                 return response.content
             except Exception as e:
                 err_str = str(e)
-                is_retryable = ("429" in err_str or "quota" in err_str.lower()) and "404" not in err_str
-                if is_retryable and attempt < MAX_RETRIES:
-                    delay = RETRY_BASE_DELAY * (2 ** attempt)
-                    logger.warning(f"Rate limited (attempt {attempt + 1}/{MAX_RETRIES + 1}), retrying in {delay}s...")
+                is_rate_limit = ("429" in err_str or "quota" in err_str.lower()) and "404" not in err_str
+                if is_rate_limit and not _is_daily_quota(err_str) and attempt < MAX_RETRIES:
+                    # Per-minute rate limit — wait and retry
+                    delay = _parse_retry_delay(err_str) or RETRY_BASE_DELAY * (2 ** attempt)
+                    delay = min(delay + 2, 120)  # add buffer, cap at 2 min
+                    logger.warning(f"Rate limited (attempt {attempt + 1}/{MAX_RETRIES + 1}), retrying in {delay:.0f}s...")
                     await asyncio.sleep(delay)
                     continue
                 raise
