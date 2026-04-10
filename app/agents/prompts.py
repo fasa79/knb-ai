@@ -145,9 +145,14 @@ def build_chat_history_block(chat_history: list[dict[str, str]] | None) -> str:
     return "\nCONVERSATION HISTORY:\n" + "\n".join(lines) + "\n"
 
 
-def build_rag_context(chunks: list[dict]) -> str:
-    """Format retrieved chunks into a context string for the RAG prompt."""
+def build_rag_context(chunks: list[dict], token_budget: int | None = None) -> str:
+    """Format retrieved chunks into a context string for the RAG prompt.
+
+    If token_budget is set, includes chunks in rank order until the budget
+    is reached, ensuring the most relevant chunks are always included.
+    """
     context_parts = []
+    running_tokens = 0
     for i, chunk in enumerate(chunks, 1):
         source = chunk.get("source", "Unknown")
         page = chunk.get("page", "?")
@@ -155,6 +160,23 @@ def build_rag_context(chunks: list[dict]) -> str:
         text = chunk.get("text", "")
 
         header = f"[Source {i}: {source}, Page {page}, Type: {content_type}]"
-        context_parts.append(f"{header}\n{text}")
+        part = f"{header}\n{text}"
+
+        if token_budget is not None:
+            part_tokens = estimate_tokens(part)
+            if running_tokens + part_tokens > token_budget and context_parts:
+                break  # stop — budget exhausted, but always include at least 1 chunk
+            running_tokens += part_tokens
+
+        context_parts.append(part)
 
     return "\n\n---\n\n".join(context_parts)
+
+
+def estimate_tokens(text: str) -> int:
+    """Estimate token count from text. Uses word count * 1.3 as a rough heuristic.
+
+    This avoids a tokenizer dependency while staying within ~10% of actual count
+    for English text. Conservative enough to prevent context window overflow.
+    """
+    return int(len(text.split()) * 1.3)

@@ -146,8 +146,8 @@ class ExtractionTool:
                 "error": "No relevant chunks found for extraction.",
             }
 
-        # Step 2: Build context from chunks
-        context = build_rag_context(chunks)
+        # Step 2: Build context from chunks (with token budget)
+        context = build_rag_context(chunks, token_budget=self.settings.context_token_budget)
 
         # Step 3: Build extraction prompt
         prompt_template = EXTRACTION_PROMPTS.get(extraction_type, EXTRACTION_PROMPTS["custom"])

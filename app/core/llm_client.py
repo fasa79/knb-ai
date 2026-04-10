@@ -83,12 +83,15 @@ class GeminiClient(BaseLLMClient):
 
     def get_chat_model(self, temperature: float = 0.1, model_override: str | None = None, **kwargs: Any) -> BaseChatModel:
         from langchain_google_genai import ChatGoogleGenerativeAI
+        from app.config import get_settings
 
+        settings = get_settings()
         return ChatGoogleGenerativeAI(
             model=model_override or self.model_name,
             google_api_key=self.api_key,
             temperature=temperature,
             max_retries=0,
+            max_output_tokens=settings.max_output_tokens,
             **kwargs,
         )
 

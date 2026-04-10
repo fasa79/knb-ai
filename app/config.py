@@ -39,6 +39,8 @@ class Settings(BaseSettings):
     # ── RAG ────────────────────────────────────────────────────────
     rag_top_k: int = Field(default=6, description="Number of chunks to retrieve")
     rag_similarity_threshold: float = Field(default=0.3, description="Minimum similarity score")
+    context_token_budget: int = Field(default=12000, description="Max tokens for context passed to LLM (leaves room for system prompt + output)")
+    max_output_tokens: int = Field(default=4096, description="Max tokens for LLM output generation")
 
     # ── API ────────────────────────────────────────────────────────
     api_host: str = Field(default="0.0.0.0", description="API host")

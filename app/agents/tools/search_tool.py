@@ -90,6 +90,7 @@ class SearchTool:
         settings = get_settings()
         self.top_k = settings.rag_top_k
         self.similarity_threshold = settings.rag_similarity_threshold
+        self.context_token_budget = settings.context_token_budget
         self.embedding_service = get_embedding_service()
         self.vector_store = get_vector_store()
         self.keyword_search = get_keyword_search()
@@ -148,8 +149,8 @@ class SearchTool:
                 sources=self._build_sources(top_results),
             )
 
-        # Stage 5: Build context
-        context = build_rag_context(top_results)
+        # Stage 5: Build context (with token budget)
+        context = build_rag_context(top_results, token_budget=self.context_token_budget)
 
         # Stage 6: LLM generation
         chat_history_block = build_chat_history_block(chat_history)

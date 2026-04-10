@@ -14,6 +14,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
+from app.config import get_settings
 from app.core.embeddings import get_embedding_service
 from app.core.vector_store import get_vector_store
 from app.core.keyword_search import get_keyword_search
@@ -79,6 +80,8 @@ class CompareTool:
     REFUSE_THRESHOLD = 0.30
 
     def __init__(self):
+        settings = get_settings()
+        self.context_token_budget = settings.context_token_budget
         self.embedding_service = get_embedding_service()
         self.vector_store = get_vector_store()
         self.keyword_search = get_keyword_search()
@@ -230,8 +233,14 @@ class CompareTool:
         return unique
 
     def _build_compare_context(self, chunks: list[dict[str, Any]]) -> str:
-        """Build a year-labeled context string for the comparison prompt."""
+        """Build a year-labeled context string for the comparison prompt.
+
+        Respects token budget — includes chunks in rank order until budget is reached.
+        """
+        from app.agents.prompts import estimate_tokens
+
         parts = []
+        running_tokens = 0
         for chunk in chunks:
             year_label = chunk.get("year_label", "?")
             source = chunk.get("source", "Unknown")
@@ -241,7 +250,13 @@ class CompareTool:
             num = chunk.get("source_num", "?")
 
             header = f"[Source {num} — Year {year_label}: {source}, Page {page}, Type: {content_type}]"
-            parts.append(f"{header}\n{text}")
+            part = f"{header}\n{text}"
+
+            part_tokens = estimate_tokens(part)
+            if running_tokens + part_tokens > self.context_token_budget and parts:
+                break
+            running_tokens += part_tokens
+            parts.append(part)
 
         return "\n\n---\n\n".join(parts)
 
