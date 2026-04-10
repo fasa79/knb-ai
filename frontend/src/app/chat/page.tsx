@@ -158,7 +158,12 @@ function renderCitations(
   sources?: Source[],
   onSourceClick?: (idx: number) => void
 ): React.ReactNode {
-  const parts = text.split(/(\[\d+\])/g);
+  // Normalize [1, 2] → [1] [2] before splitting
+  const normalized = text.replace(/\[(\d+)(?:,\s*(\d+))+\]/g, (match) => {
+    const nums = match.match(/\d+/g);
+    return nums ? nums.map((n) => `[${n}]`).join(" ") : match;
+  });
+  const parts = normalized.split(/(\[\d+\])/g);
   if (parts.length === 1) return text;
 
   return (
@@ -220,11 +225,17 @@ export default function ChatPage() {
     setInput("");
     setLoading(true);
 
+    // Build chat history from existing messages (last 6 for context)
+    const history = messages.slice(-6).map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
     try {
       const res = await fetch(`${API_URL}/api/query`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, model: selectedModel || undefined }),
+        body: JSON.stringify({ question, model: selectedModel || undefined, chat_history: history }),
       });
 
       if (!res.ok) {
@@ -274,6 +285,18 @@ export default function ChatPage() {
             </Link>
           </div>
           <nav className="flex items-center gap-4 text-sm">
+            {messages.length > 0 && (
+              <button
+                onClick={() => setMessages([])}
+                className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 text-xs text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-colors dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-200"
+                title="Start a new chat"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                New Chat
+              </button>
+            )}
             <select
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
@@ -317,7 +340,7 @@ export default function ChatPage() {
               </h2>
               <p className="text-zinc-500 dark:text-zinc-400 mb-8 max-w-md mx-auto">
                 Ask questions about Khazanah&apos;s financial performance,
-                portfolio, ESG initiatives, and more.
+                portfolio, ESG initiatives, and more. Answers are generated using RAG with cited sources from ingested documents.
               </p>
               <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wide mb-2">Search</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto mb-6">

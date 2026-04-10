@@ -9,34 +9,37 @@ RAG_SYSTEM_PROMPT = """You are an AI analyst assistant for Khazanah Nasional Ber
 
 RULES:
 1. ONLY answer based on the provided context. Do not use outside knowledge.
-2. Cite sources using numbered references like [1], [2], etc. matching the Source numbers in the context. Place citations at the end of the relevant sentence.
+2. Cite sources using numbered references like [1], [2], etc. matching the Source numbers in the context. Place citations at the end of the relevant sentence. Always use separate brackets for each source — write [1] [2], never [1, 2].
 3. If the context does not contain enough information to answer, say: "I couldn't find specific information about this in the Annual Review documents."
 4. For financial figures, quote the exact numbers from the context. Do not estimate or calculate.
 5. If a question is ambiguous, state what you found and note what aspects are unclear.
 6. Be concise but complete. Use bullet points for lists.
 7. For tables or structured data, present them in a readable format.
-8. Always specify which year's data you are referencing."""
+8. Always specify which year's data you are referencing.
+9. Pay close attention to comparison phrases like "from X to Y" or "acceleration from X to Y" — X is the prior period and Y is the current period. Match the correct figure to the year asked about."""
 
 RAG_USER_PROMPT = """Based on the following context from Khazanah's Annual Review documents, answer the question.
-
+{chat_history_block}
 CONTEXT:
 {context}
 
 QUESTION: {question}
 
-Provide a clear, accurate answer. Cite sources using their number like [1], [2]. If the context doesn't contain relevant information, say so."""
+Provide a clear, accurate answer. Cite sources using their number like [1], [2]. If the context doesn't contain relevant information, say so.
+If there is conversation history above, use it for continuity — stay consistent with your previous answers. If the user asks for translation or reformatting, preserve the same data and citations from your previous answer."""
 
 # ── Agent Supervisor Prompt ───────────────────────────────────────
 
 SUPERVISOR_SYSTEM_PROMPT = """You are a query router for the Khazanah Annual Review AI system. Your job is to classify the user's intent and route to the right tool.
 
 Classify the query into ONE of these categories:
-- "search": Questions asking for explanations, summaries, or specific answers (e.g. "What was the TWRR?", "Explain the ESG strategy")
+- "search": Questions asking for explanations, summaries, or specific answers (e.g. "What was the TWRR?", "Explain the ESG strategy", "How did policy changes affect the economy?")
 - "extract": Requests to list, enumerate, or extract multiple data points (e.g. "List all portfolio companies", "Extract all percentage figures", "Show all financial metrics", "List all returns", "Give me all the numbers related to growth")
 - "compare": Questions comparing data across different years or documents (e.g. "How did assets change from 2024 to 2025?")
-- "off_topic": Questions unrelated to Khazanah or the Annual Review
+- "off_topic": Questions clearly unrelated to Khazanah, Malaysia's economy, investments, markets, or policy (e.g. "What is the weather?", "Tell me a joke")
 
 IMPORTANT: If the query says "list", "extract", "enumerate", "show all", or asks for multiple data items, classify as "extract".
+IMPORTANT: The Annual Review covers Malaysian economy, government policy, market conditions, and geopolitics — questions about these topics as they relate to Malaysia's economic landscape are NOT off_topic.
 
 Respond with ONLY the category name, nothing else."""
 
@@ -123,6 +126,23 @@ CONFIDENCE_LABELS = {
     "low": "Limited relevant information found — answer may be incomplete",
     "none": "No relevant information found in the Annual Review documents",
 }
+
+
+def build_chat_history_block(chat_history: list[dict[str, str]] | None) -> str:
+    """Format chat history into a block for injection into prompts.
+
+    Uses last 4 messages (2 exchanges) to keep prompt concise.
+    Returns empty string if no history.
+    """
+    if not chat_history:
+        return ""
+    recent = chat_history[-4:]
+    lines = []
+    for m in recent:
+        role = "User" if m.get("role") == "user" else "Assistant"
+        content = m.get("content", "")[:500]
+        lines.append(f"{role}: {content}")
+    return "\nCONVERSATION HISTORY:\n" + "\n".join(lines) + "\n"
 
 
 def build_rag_context(chunks: list[dict]) -> str:

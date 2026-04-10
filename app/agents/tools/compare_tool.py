@@ -18,7 +18,7 @@ from app.core.embeddings import get_embedding_service
 from app.core.vector_store import get_vector_store
 from app.core.keyword_search import get_keyword_search
 from app.core.llm_client import get_llm_client
-from app.agents.prompts import CONFIDENCE_LABELS
+from app.agents.prompts import CONFIDENCE_LABELS, build_chat_history_block
 
 logger = logging.getLogger(__name__)
 
@@ -41,13 +41,14 @@ RULES:
 7. If the context doesn't support a meaningful comparison, say so."""
 
 COMPARE_USER_PROMPT = """Based on the following context from Khazanah's Annual Review documents covering different years, answer the comparison question.
-
+{chat_history_block}
 CONTEXT FROM YEAR-SEPARATED RETRIEVAL:
 {context}
 
 QUESTION: {question}
 
-Provide a clear comparative analysis. Use tables where numeric data allows side-by-side comparison. Cite sources with [1], [2], etc."""
+Provide a clear comparative analysis. Use tables where numeric data allows side-by-side comparison. Cite sources with [1], [2], etc.
+If there is conversation history above, use it for continuity — stay consistent with your previous answers."""
 
 
 @dataclass
@@ -89,12 +90,13 @@ class CompareTool:
             except Exception as e:
                 logger.warning(f"Failed to build keyword index: {e}")
 
-    async def compare(self, query: str, model: str | None = None) -> CompareResponse:
+    async def compare(self, query: str, model: str | None = None, chat_history: list[dict[str, str]] | None = None) -> CompareResponse:
         """Execute a cross-year comparison query.
 
         Args:
             query: Natural language comparison question.
             model: Optional model override.
+            chat_history: Previous conversation messages for follow-up context.
 
         Returns:
             CompareResponse with comparative analysis.
@@ -143,7 +145,8 @@ class CompareTool:
         context = self._build_compare_context(all_chunks)
 
         # Step 5: LLM generates comparative analysis
-        prompt = COMPARE_USER_PROMPT.format(context=context, question=query)
+        chat_history_block = build_chat_history_block(chat_history)
+        prompt = COMPARE_USER_PROMPT.format(context=context, question=query, chat_history_block=chat_history_block)
         answer = await self.llm_client.generate(
             prompt=prompt,
             system_prompt=COMPARE_SYSTEM_PROMPT,

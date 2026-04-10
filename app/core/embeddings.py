@@ -79,7 +79,7 @@ class LocalEmbeddingService(BaseEmbeddingService):
 
 
 class GoogleEmbeddingService(BaseEmbeddingService):
-    """Google gemini-embedding-001 via the Generative AI API."""
+    """Google Gemini embedding via the Generative AI API."""
 
     # Free tier: 100 requests per minute → space calls ~0.7s apart
     _MIN_REQUEST_INTERVAL = 0.7

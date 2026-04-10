@@ -74,12 +74,14 @@ class IngestionPipeline:
         chunk_overlap: int | None = None,
         extract_images: bool = True,
         use_vision: bool = False,
+        vision_model: str | None = None,
     ):
         settings = get_settings()
         self.chunk_size = chunk_size or settings.chunk_size
         self.chunk_overlap = chunk_overlap or settings.chunk_overlap
         self.data_dir = settings.data_path
         self.use_vision = use_vision
+        self.vision_model = vision_model
 
         self.parser = PDFParser(extract_images=extract_images)
         self.embedding_service = get_embedding_service()
@@ -170,7 +172,7 @@ class IngestionPipeline:
             # Step 2b: Vision — describe chart/graph images and add as chunks
             if self.use_vision and total_images > 0:
                 logger.info(f"  [2b] Analyzing {total_images} images with vision model...")
-                vision_chunks = self._process_images_with_vision(document)
+                vision_chunks = self._process_images_with_vision(document, model_override=self.vision_model)
                 if vision_chunks:
                     chunks.extend(vision_chunks)
                     logger.info(f"  Added {len(vision_chunks)} image description chunks (total: {len(chunks)})")
@@ -260,6 +262,7 @@ class IngestionPipeline:
         document: ParsedDocument,
         min_size_kb: int = 30,
         max_size_kb: int = 1000,
+        model_override: str | None = None,
     ) -> list[Chunk]:
         """Use vision model to describe images and create searchable chunks.
 
@@ -288,7 +291,7 @@ class IngestionPipeline:
         # Run vision analysis (async → sync bridge via thread to avoid loop conflicts)
         import concurrent.futures
         def _run_vision():
-            return asyncio.run(describe_images_batch(images))
+            return asyncio.run(describe_images_batch(images, model_override=model_override))
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
             descriptions = pool.submit(_run_vision).result()

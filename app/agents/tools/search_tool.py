@@ -28,6 +28,7 @@ from app.agents.prompts import (
     RAG_USER_PROMPT,
     CONFIDENCE_LABELS,
     build_rag_context,
+    build_chat_history_block,
 )
 
 logger = logging.getLogger(__name__)
@@ -105,12 +106,13 @@ class SearchTool:
         except Exception as e:
             logger.warning(f"Failed to build keyword index: {e}")
 
-    async def search(self, query: str, model: str | None = None) -> SearchResponse:
+    async def search(self, query: str, model: str | None = None, chat_history: list[dict[str, str]] | None = None) -> SearchResponse:
         """Execute hybrid search + RAG generation.
 
         Args:
             query: Natural language question.
             model: Optional model override.
+            chat_history: Previous conversation messages for follow-up context.
 
         Returns:
             SearchResponse with answer, sources, and confidence.
@@ -150,7 +152,8 @@ class SearchTool:
         context = build_rag_context(top_results)
 
         # Stage 6: LLM generation
-        prompt = RAG_USER_PROMPT.format(context=context, question=query)
+        chat_history_block = build_chat_history_block(chat_history)
+        prompt = RAG_USER_PROMPT.format(context=context, question=query, chat_history_block=chat_history_block)
         answer = await self.llm_client.generate(
             prompt=prompt,
             system_prompt=RAG_SYSTEM_PROMPT,

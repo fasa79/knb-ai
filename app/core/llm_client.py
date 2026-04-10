@@ -176,8 +176,8 @@ def reset_llm_client() -> None:
 # ── Available Models (for frontend selection) ─────────────────────
 
 AVAILABLE_MODELS = [
-    {"id": "gemini-3.1-flash-lite-preview", "name": "Gemini 3.1 Flash Lite", "rpm": 15, "rpd": 500, "provider": "google_gemini"},
-    {"id": "gemini-2.5-flash", "name": "Gemini 2.5 Flash", "rpm": 5, "rpd": 20, "provider": "google_gemini"},
-    {"id": "gemini-2.5-flash-lite", "name": "Gemini 2.5 Flash Lite", "rpm": 10, "rpd": 20, "provider": "google_gemini"},
     {"id": "gemini-3-flash-preview", "name": "Gemini 3 Flash", "rpm": 5, "rpd": 20, "provider": "google_gemini"},
+    {"id": "gemini-2.5-flash", "name": "Gemini 2.5 Flash", "rpm": 5, "rpd": 20, "provider": "google_gemini"},
+    {"id": "gemini-3.1-flash-lite-preview", "name": "Gemini 3.1 Flash Lite", "rpm": 15, "rpd": 500, "provider": "google_gemini"},
+    {"id": "gemini-2.5-flash-lite", "name": "Gemini 2.5 Flash Lite", "rpm": 10, "rpd": 20, "provider": "google_gemini"},
 ]

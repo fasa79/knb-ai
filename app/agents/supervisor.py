@@ -39,29 +39,35 @@ class AgentSupervisor:
         self.extraction_tool = get_extraction_tool()
         self.compare_tool = get_compare_tool()
 
-    async def process_query(self, query: str, use_cache: bool = True, model: str | None = None) -> dict[str, Any]:
+    async def process_query(self, query: str, use_cache: bool = True, model: str | None = None, chat_history: list[dict[str, str]] | None = None) -> dict[str, Any]:
         """Process a user query end-to-end.
 
         Args:
             query: Natural language question.
             use_cache: Whether to check/store in semantic cache.
             model: Optional model override (e.g. 'gemini-2.5-flash').
+            chat_history: Previous conversation messages for follow-up context.
 
         Returns:
             Dict with answer, sources, confidence, intent, cached status.
         """
-        # Check cache first
+        # Rewrite follow-up queries using chat history
+        resolved_query = await self._resolve_followup(query, chat_history, model) if chat_history else query
+        if resolved_query != query:
+            logger.info(f"Follow-up resolved: '{query[:60]}' → '{resolved_query[:80]}'")
+
+        # Check cache first (using the resolved query)
         if use_cache:
-            cached = self.cache.get(query)
+            cached = self.cache.get(resolved_query)
             if cached is not None:
                 cached["cached"] = True
                 return cached
 
         # Classify intent
-        intent = await self._classify_intent(query, model=model)
-        logger.info(f"Intent: {intent} | Query: {query[:80]}")
+        intent = await self._classify_intent(resolved_query, model=model)
+        logger.info(f"Intent: {intent} | Query: {resolved_query[:80]}")
 
-        # Route to the right tool
+        # Route to the right tool (chat_history flows into generation prompts)
         if intent == "off_topic":
             result = {
                 "answer": "This question doesn't appear to be related to Khazanah's Annual Review. "
@@ -75,28 +81,28 @@ class AgentSupervisor:
             }
         elif intent == "extract":
             # Detect extraction type from the query
-            ext_type = self._detect_extraction_type(query)
+            ext_type = self._detect_extraction_type(resolved_query)
             ext_result = await self.extraction_tool.extract(
                 extraction_type=ext_type,
-                query=query,
+                query=resolved_query,
                 model=model,
             )
             # Build a chat-friendly response from structured data
-            result = await self._format_extraction_response(ext_result, query, model)
+            result = await self._format_extraction_response(ext_result, resolved_query, model, chat_history)
             result["intent"] = "extract"
             result["extraction_data"] = ext_result.get("data")
         elif intent == "compare":
-            response = await self.compare_tool.compare(query, model=model)
+            response = await self.compare_tool.compare(resolved_query, model=model, chat_history=chat_history)
             result = response.to_dict()
             result["intent"] = "compare"
         else:
-            response = await self.search_tool.search(query, model=model)
+            response = await self.search_tool.search(resolved_query, model=model, chat_history=chat_history)
             result = response.to_dict()
             result["intent"] = "search"
 
         # Store in cache
         if use_cache and result.get("confidence") != "none":
-            self.cache.put(query, result)
+            self.cache.put(resolved_query, result)
 
         return result
 
@@ -124,9 +130,11 @@ class AgentSupervisor:
         return "custom"
 
     async def _format_extraction_response(
-        self, ext_result: dict, query: str, model: str | None = None
+        self, ext_result: dict, query: str, model: str | None = None, chat_history: list[dict[str, str]] | None = None
     ) -> dict:
         """Convert structured extraction data into a chat-friendly response."""
+        from app.agents.prompts import build_chat_history_block
+
         data = ext_result.get("data")
         if not data:
             error_detail = ext_result.get("error", "")
@@ -166,8 +174,11 @@ class AgentSupervisor:
             for i, s in enumerate(unique_sources[:6])
         )
 
+        chat_history_block = build_chat_history_block(chat_history)
+
         prompt = (
             f"The user asked: \"{query}\"\n\n"
+            f"{chat_history_block}"
             f"Here is the structured data extracted from Khazanah's Annual Review:\n"
             f"```json\n{data_str}\n```\n\n"
             f"Sources:\n{source_refs}\n\n"
@@ -206,6 +217,50 @@ class AgentSupervisor:
             "confidence_label": "Structured extraction from Annual Review",
             "cached": False,
         }
+
+    async def _resolve_followup(self, query: str, chat_history: list[dict[str, str]] | None, model: str | None = None) -> str:
+        """Rewrite a follow-up query into a standalone question using chat history.
+
+        Returns the resolved query string. If the query is already self-contained,
+        returns it as-is. Chat history is separately passed to generation prompts
+        for continuity — this method only handles query rewriting for better retrieval.
+        """
+        if not chat_history:
+            return query
+
+        # Use last 6 messages max (3 exchanges) to keep prompt small
+        recent = chat_history[-6:]
+        history_str = "\n".join(
+            f"{'User' if m.get('role') == 'user' else 'Assistant'}: {m.get('content', '')[:300]}"
+            for m in recent
+        )
+
+        prompt = (
+            f"Chat history:\n{history_str}\n\n"
+            f"Latest user message: {query}\n\n"
+            f"If the latest message is a follow-up that references the conversation (e.g. uses pronouns "
+            f"like 'it', 'that', 'those', 'they', or says 'elaborate', 'more details', 'what about', "
+            f"or asks for translation/reformatting like 'in malay', 'summarize'), "
+            f"rewrite it as a standalone question that makes sense without the chat history.\n"
+            f"If the message is already self-contained, return it exactly as-is.\n\n"
+            f"Return ONLY the rewritten question, nothing else."
+        )
+
+        try:
+            rewritten = await self.llm_client.generate(
+                prompt=prompt,
+                system_prompt="You rewrite follow-up questions into standalone questions. Return ONLY the question.",
+                temperature=0.0,
+                model_override=model,
+            )
+            rewritten = rewritten.strip().strip('"\'')
+            # Sanity check: if LLM returned junk or empty, fall back to original
+            if len(rewritten) < 5 or len(rewritten) > 2000:
+                return query
+            return rewritten
+        except Exception as e:
+            logger.warning(f"Follow-up resolution failed: {e}, using original query")
+            return query
 
     async def _classify_intent(self, query: str, model: str | None = None) -> str:
         """Classify query intent using LLM with keyword shortcut."""

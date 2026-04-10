@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     # ── LLM Provider ──────────────────────────────────────────────
     llm_provider: str = Field(default="google_gemini", description="LLM provider: google_gemini | groq | ollama")
     gemini_api_key: str = Field(default="", description="Google Gemini API key")
-    gemini_model: str = Field(default="gemini-3.1-flash-lite-preview", description="Gemini model name")
+    gemini_model: str = Field(default="gemini-3-flash-preview", description="Gemini model name")
     groq_api_key: str = Field(default="", description="Groq API key")
     groq_model: str = Field(default="llama-3.3-70b-versatile", description="Groq model name")
     ollama_base_url: str = Field(default="http://localhost:11434", description="Ollama base URL")
@@ -24,7 +24,7 @@ class Settings(BaseSettings):
 
     # ── Embeddings ────────────────────────────────────────────────
     embedding_provider: str = Field(default="google", description="Embedding provider: google | local")
-    embedding_model: str = Field(default="gemini-embedding-001", description="Embedding model name")
+    embedding_model: str = Field(default="gemini-embedding-2-preview", description="Embedding model name")
 
     # ── Vector DB ─────────────────────────────────────────────────
     chroma_persist_dir: str = Field(default="./chroma_db", description="ChromaDB persistence directory")

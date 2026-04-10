@@ -7,7 +7,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 
 from app.config import get_settings
 from app.ingestion.pipeline import IngestionPipeline
@@ -171,6 +171,29 @@ async def delete_document(filename: str):
     return {"deleted": filename}
 
 
+@app.get(
+    "/api/documents/{filename}/download",
+    tags=["Documents"],
+    summary="Download a document",
+    responses={404: {"model": ErrorResponse}},
+)
+async def download_document(filename: str):
+    """Download a PDF document from the data directory."""
+    import re
+    if not re.match(r'^[\w\-. ()]+\.pdf$', filename, re.IGNORECASE):
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    file_path = Path(settings.data_dir) / filename
+    if file_path.resolve().parent != Path(settings.data_dir).resolve():
+        raise HTTPException(status_code=400, detail="Invalid path")
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail=f"File not found: {filename}")
+    return FileResponse(
+        path=file_path,
+        filename=filename,
+        media_type="application/pdf",
+    )
+
+
 # ── Ingestion Pipeline ────────────────────────────────────────────
 
 
@@ -181,15 +204,16 @@ async def delete_document(filename: str):
     summary="Run ingestion pipeline",
     responses={500: {"model": ErrorResponse}},
 )
-async def ingest_documents(clear_existing: bool = True, use_vision: bool = False):
+async def ingest_documents(clear_existing: bool = True, use_vision: bool = False, vision_model: str | None = None):
     """Run the full ingestion pipeline: parse → chunk → embed → store.
 
     - **clear_existing=true**: Wipe vector store and re-index all PDFs (default).
     - **clear_existing=false**: Append new chunks (upsert) alongside existing ones.
     - **use_vision=true**: Use Gemini Vision to analyze chart/graph images (slower, uses more API quota).
+    - **vision_model**: Override the model used for vision analysis.
     """
     try:
-        pipeline = IngestionPipeline(use_vision=use_vision)
+        pipeline = IngestionPipeline(use_vision=use_vision, vision_model=vision_model)
         result = pipeline.run(clear_existing=clear_existing)
         return result.summary
     except Exception as e:
@@ -219,6 +243,7 @@ class QueryRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=2000, description="Natural language question about the Annual Review")
     use_cache: bool = Field(default=True, description="Check semantic cache for similar recent queries")
     model: str | None = Field(default=None, description="LLM model override (e.g. 'gemini-2.5-flash')")
+    chat_history: list[dict[str, str]] = Field(default_factory=list, description="Previous messages for follow-up context. Each item: {role: 'user'|'assistant', content: '...'}")
 
 
 @app.post(
@@ -244,9 +269,17 @@ async def query_documents(request: QueryRequest):
             query=request.question.strip(),
             use_cache=request.use_cache,
             model=request.model,
+            chat_history=request.chat_history,
         )
         return result
     except Exception as e:
+        err_str = str(e).lower()
+        if "429" in str(e) or "quota" in err_str or "resource has been exhausted" in err_str:
+            model_name = request.model or settings.gemini_model
+            raise HTTPException(
+                status_code=429,
+                detail=f"API quota exhausted for {model_name}. Try selecting a different model from the dropdown (Lite models have higher daily limits).",
+            )
         logger.error(f"Query failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Query failed: {str(e)}")
 
@@ -302,5 +335,12 @@ async def extract_data(request: ExtractRequest):
         )
         return result
     except Exception as e:
+        err_str = str(e).lower()
+        if "429" in str(e) or "quota" in err_str or "resource has been exhausted" in err_str:
+            model_name = request.model or settings.gemini_model
+            raise HTTPException(
+                status_code=429,
+                detail=f"API quota exhausted for {model_name}. Try selecting a different model from the dropdown (Lite models have higher daily limits).",
+            )
         logger.error(f"Extraction failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Extraction failed: {str(e)}")

@@ -43,6 +43,14 @@ interface IngestStatus {
   file_status?: FileIngestStatus[];
 }
 
+interface ModelInfo {
+  id: string;
+  name: string;
+  rpm: number;
+  rpd: number;
+  provider: string;
+}
+
 export default function Home() {
   const [recentUploads, setRecentUploads] = useState<UploadedFile[]>([]);
   const [documents, setDocuments] = useState<DocumentInfo[]>([]);
@@ -54,6 +62,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [clearExisting, setClearExisting] = useState(true);
   const [useVision, setUseVision] = useState(false);
+  const [models, setModels] = useState<ModelInfo[]>([]);
+  const [visionModel, setVisionModel] = useState<string>("");
 
   const deleteDocument = async (filename: string) => {
     if (!confirm(`Delete ${filename}? This cannot be undone.`)) return;
@@ -99,6 +109,15 @@ export default function Home() {
   useEffect(() => {
     loadDocuments();
     loadIngestStatus();
+    fetch(`${API_URL}/api/models`)
+      .then((r) => r.json())
+      .then((data) => {
+        setModels(data.models);
+        // Default to lite model for vision (highest RPD)
+        const lite = data.models.find((m: ModelInfo) => m.id.includes("lite") && m.rpd >= 500);
+        setVisionModel(lite?.id || data.models[data.models.length - 1]?.id || "");
+      })
+      .catch(() => {});
   }, [loadDocuments, loadIngestStatus]);
 
   // Poll ingestion status while ingesting
@@ -119,6 +138,9 @@ export default function Home() {
       const params = new URLSearchParams();
       params.set("clear_existing", String(clearExisting));
       params.set("use_vision", String(useVision));
+      if (useVision && visionModel) {
+        params.set("vision_model", visionModel);
+      }
 
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 300000); // 5 min timeout
@@ -229,6 +251,10 @@ export default function Home() {
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-10">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
+          Upload Khazanah Annual Review PDFs here, then ingest them to build the knowledge base used by Chat and Extract.
+        </p>
+
         {/* Upload Section */}
         <section>
           <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
@@ -399,7 +425,15 @@ export default function Home() {
                         >
                           <path d="M4 18h12a2 2 0 002-2V6.414A2 2 0 0017.414 5L14 1.586A2 2 0 0012.586 1H4a2 2 0 00-2 2v13a2 2 0 002 2z" />
                         </svg>
-                        {doc.filename}
+                        <a
+                          href={`${API_URL}/api/documents/${encodeURIComponent(doc.filename)}/download`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors"
+                          title={`Download ${doc.filename}`}
+                        >
+                          {doc.filename}
+                        </a>
                       </td>
                       <td className="px-4 py-3 text-right text-zinc-500 dark:text-zinc-400">
                         {doc.size_kb > 1024
@@ -495,8 +529,21 @@ export default function Home() {
                 </label>
               </div>
               {useVision && (
-                <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-300 max-w-sm text-right">
-                  <strong>Heads up:</strong> Vision analyzes each image via Gemini API. With free-tier rate limits (15 RPM), this can take <strong>several minutes</strong> per document and uses significant API quota.
+                <div className="flex flex-col items-end gap-2">
+                  <select
+                    value={visionModel}
+                    onChange={(e) => setVisionModel(e.target.value)}
+                    className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-700 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
+                  >
+                    {models.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name} ({m.rpd} RPD)
+                      </option>
+                    ))}
+                  </select>
+                  <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-300 max-w-sm text-right">
+                    <strong>Heads up:</strong> Vision analyzes each image via Gemini API. With free-tier rate limits, this can take <strong>several minutes</strong> per document and uses significant API quota.
+                  </div>
                 </div>
               )}
               <div className="flex items-center gap-3">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -46,6 +46,14 @@ interface KeyHighlight {
   description: string;
   value: string | null;
   year: string | null;
+}
+
+interface ModelInfo {
+  id: string;
+  name: string;
+  rpm: number;
+  rpd: number;
+  provider: string;
 }
 
 const EXTRACTION_TYPES = [
@@ -305,6 +313,18 @@ export default function ExtractPage() {
   const [result, setResult] = useState<ExtractionResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState<number | null>(null);
+  const [models, setModels] = useState<ModelInfo[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string>("");
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/models`)
+      .then((r) => r.json())
+      .then((data) => {
+        setModels(data.models);
+        setSelectedModel(data.default);
+      })
+      .catch(() => {});
+  }, []);
 
   const runExtraction = async () => {
     setLoading(true);
@@ -317,6 +337,9 @@ export default function ExtractPage() {
       const body: Record<string, string> = { extraction_type: selectedType };
       if (selectedType === "custom" && customQuery.trim()) {
         body.query = customQuery.trim();
+      }
+      if (selectedModel) {
+        body.model = selectedModel;
       }
 
       const res = await fetch(`${API_URL}/api/extract`, {
@@ -353,6 +376,38 @@ export default function ExtractPage() {
     URL.revokeObjectURL(url);
   };
 
+  const flattenForCSV = (data: Record<string, unknown>): Record<string, unknown>[] => {
+    // Find the first array value in data to use as rows
+    for (const val of Object.values(data)) {
+      if (Array.isArray(val) && val.length > 0 && typeof val[0] === "object") {
+        return val as Record<string, unknown>[];
+      }
+    }
+    // If no array found, wrap the whole object as a single row
+    return [data];
+  };
+
+  const exportCSV = () => {
+    if (!result?.data) return;
+    const rows = flattenForCSV(result.data);
+    if (rows.length === 0) return;
+    const headers = Object.keys(rows[0]);
+    const escape = (v: unknown) => {
+      const s = v == null ? "" : String(v);
+      return s.includes(",") || s.includes('"') || s.includes("\n")
+        ? `"${s.replace(/"/g, '""')}"`
+        : s;
+    };
+    const csv = [headers.join(","), ...rows.map((r) => headers.map((h) => escape(r[h])).join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `khazanah_${result.extraction_type}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Header */}
@@ -366,7 +421,18 @@ export default function ExtractPage() {
               Extract portfolio, financials, and insights from the Annual Review
             </p>
           </div>
-          <nav className="flex gap-2">
+          <nav className="flex gap-2 items-center">
+            <select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              className="rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs text-gray-700 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+            >
+              {models.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name} ({m.rpd} rpd)
+                </option>
+              ))}
+            </select>
             <Link
               href="/"
               className="px-3 py-1.5 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors"
@@ -387,6 +453,10 @@ export default function ExtractPage() {
       </header>
 
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Pull structured data — financials, portfolio companies, ESG highlights — from the ingested documents into clean tables and downloadable JSON.
+        </p>
+
         {/* Extraction Type Selector */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {EXTRACTION_TYPES.map((t) => (
@@ -489,6 +559,15 @@ export default function ExtractPage() {
               className="px-4 py-2.5 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-sm text-gray-700 dark:text-gray-300 transition-colors"
             >
               Export JSON
+            </button>
+          )}
+
+          {result?.data && (
+            <button
+              onClick={exportCSV}
+              className="px-4 py-2.5 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-sm text-gray-700 dark:text-gray-300 transition-colors"
+            >
+              Export CSV
             </button>
           )}
 
